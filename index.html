@@ -263,6 +263,27 @@ details.lesson .body{padding:0 20px 18px; max-width:70ch}
 .ledger{font-size:.85rem; font-family:ui-monospace,monospace; color:var(--muted); border-top:1px dashed var(--line); margin-top:10px; padding-top:8px}
 .ledger div{display:flex; justify-content:space-between}
 
+
+/* ---------- bend lab ---------- */
+.bendwrap canvas{width:100%; height:auto; display:block; border-radius:10px; background:var(--surface2)}
+.bendstat{display:flex; gap:18px; align-items:baseline; margin-top:8px; flex-wrap:wrap}
+.bendstat .pct{font-family:ui-monospace,monospace; font-size:1.5rem; font-weight:700}
+/* ---------- arcade ---------- */
+.pktline{display:flex; flex-wrap:wrap; gap:8px; min-height:52px; padding:10px; border:2px dashed var(--line); border-radius:10px; margin:10px 0}
+.pkt{border:2px solid var(--down); background:var(--surface); color:var(--ink); border-radius:8px; padding:8px 10px; font-family:ui-monospace,monospace; font-size:.9rem; cursor:pointer; font-weight:700; transition:transform .12s}
+.pkt:hover:not(:disabled){transform:translateY(-2px)}
+.pkt:disabled{opacity:.35; cursor:default}
+.pkt .seq{color:var(--up); font-size:.7rem; display:block}
+.pkt.err{animation:shake .4s ease}
+.asm{font-family:ui-monospace,monospace; font-size:1.2rem; letter-spacing:.06em; min-height:1.6em; font-weight:700}
+.matchgrid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px}
+@media (max-width:640px){.matchgrid{grid-template-columns:1fr}}
+.mcol{display:flex; flex-direction:column; gap:8px}
+.mbtn{border:2px solid var(--line); background:var(--surface); color:var(--ink); border-radius:10px; padding:9px 12px; font-size:.88rem; cursor:pointer; font-family:inherit; text-align:left; transition:all .15s}
+.mbtn.selm{border-color:var(--down); box-shadow:0 0 0 3px color-mix(in srgb,var(--down) 20%,transparent)}
+.mbtn.done{border-color:var(--good); background:color-mix(in srgb,var(--good) 12%,var(--surface)); opacity:.75; cursor:default}
+.mbtn.badf{animation:shake .4s ease; border-color:var(--bad)}
+
 /* ---------- troubleshooting lab game ---------- */
 .chain{display:flex; flex-wrap:wrap; gap:8px; margin:16px 0; align-items:center}
 .chain .arrow{color:var(--muted); font-size:.9rem}
@@ -337,6 +358,7 @@ footer{border-top:1px solid var(--line); color:var(--muted); font-size:.85rem; p
   <a href="#flow">Add subscriber</a>
   <a href="#tester">Tester’s lens</a>
   <a href="#labgame">🧪 Lab</a>
+  <a href="#arcade">🕹️ Arcade</a>
   <a href="#quiz">Quiz</a>
   <a href="#glossary">Glossary</a>
   <button class="theme" id="themeBtn" aria-label="Toggle color theme">◐ Theme</button>
@@ -430,6 +452,18 @@ footer{border-top:1px solid var(--line); color:var(--muted); font-size:.85rem; p
       dirty connector “eats budget.” When a tech says an ONT has <i>low light</i>, the operations cloud is often what told them.</p>
     </div>
   </details>
+
+  <div class="lab bendwrap">
+    <h3>🌀 The Bend Lab: why light stays in the noodle</h3>
+    <p class="prose" style="margin-top:0">Light stays inside glass by <b>total internal reflection</b> — hitting the wall
+    at a shallow angle, it bounces back in, forever. Bend the fiber too hard, though, and the bounce angle gets too steep:
+    photons <b>leak out</b>. Field techs call this <b>macrobend loss</b> — the classic “someone stapled the patch cord”
+    ticket. Drag the slider and watch the light survive (or not):</p>
+    <canvas id="bendCanvas" width="900" height="250" role="img" aria-label="Light ray bouncing inside a bendable fiber"></canvas>
+    <div class="ctl" style="margin-top:10px"><label>Bend the fiber <output id="o-bend">gentle</output></label>
+      <input type="range" id="r-bend" min="0" max="100" value="10" step="1" style="width:100%; accent-color:var(--down)"></div>
+    <div class="bendstat"><span class="pct" id="bendPct">100%</span><span id="bendMsg" class="diagram-note" style="margin:0"></span></div>
+  </div>
 </section>
 
 <section id="pon" class="reveal">
@@ -830,6 +864,37 @@ footer{border-top:1px solid var(--line); color:var(--muted); font-size:.85rem; p
       <button class="btn" id="labRestart" style="display:none">↺ Play again</button>
     </div>
     <div class="labdone" id="labDone"></div>
+  </div>
+</section>
+
+<section id="arcade" class="reveal">
+  <div class="eyebrow">Straight from the classic explainer videos</div>
+  <h2>🕹️ The Arcade</h2>
+  <div class="eli5">
+    <span class="who">🖍️ Like you’re five</span>
+    Two mini-games. First: your message got chopped into pieces and they arrived <b>scrambled</b> — glue it back together
+    like the internet does a billion times a second. Then: speed-match the secret code words to what they really mean.
+  </div>
+
+  <div class="lab">
+    <h3>📦 Packet reassembly</h3>
+    <p class="prose" style="margin-top:0">Everything you send online is chopped into <b>packets</b>, each stamped with a
+    sequence number. They can take <b>different routes</b> and arrive out of order — the receiver puts them back together.
+    Be the receiver: click the packets in sequence order.</p>
+    <div class="pktline" id="pktPool"></div>
+    <div class="asm" id="pktAsm" aria-live="polite"></div>
+    <div class="labmsg" id="pktMsg"></div>
+    <button class="btn" id="pktReset">↺ New message</button>
+  </div>
+
+  <div class="lab">
+    <h3>🧠 Speak broadband: the matching game</h3>
+    <p class="prose" style="margin-top:0">Click a term, then its plain-English meaning. Clear the board.</p>
+    <div class="matchgrid">
+      <div class="mcol" id="mTerms"></div>
+      <div class="mcol" id="mDefs"></div>
+    </div>
+    <div class="labmsg" id="mMsg"></div>
   </div>
 </section>
 
@@ -1411,6 +1476,108 @@ function guess(k,btn){
 labNext.onclick=()=>{ci++; loadCase();};
 labRestart.onclick=()=>{ci=0; labScore=0; labDone.classList.remove('show'); labRestart.style.display='none'; loadCase();};
 loadCase();
+
+/* ---------- BEND LAB ---------- */
+const bc=document.getElementById('bendCanvas'), bcx=bc.getContext('2d'),
+      rBend=document.getElementById('r-bend'), oBend=document.getElementById('o-bend'),
+      bendPct=document.getElementById('bendPct'), bendMsg=document.getElementById('bendMsg');
+const cssv=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function drawBend(){
+  const W=bc.width,H=bc.height,b=+rBend.value;
+  const dip=b*1.35;
+  bcx.clearRect(0,0,W,H);
+  const mid=x=>70+dip*Math.sin(Math.PI*x/W);
+  bcx.beginPath(); bcx.moveTo(0,mid(0)-24);
+  for(let x=0;x<=W;x+=10)bcx.lineTo(x,mid(x)-24);
+  for(let x=W;x>=0;x-=10)bcx.lineTo(x,mid(x)+24);
+  bcx.closePath(); bcx.fillStyle='rgba(127,163,200,.16)'; bcx.fill();
+  bcx.strokeStyle='rgba(127,163,200,.55)'; bcx.lineWidth=1.5; bcx.stroke();
+  const leak=Math.max(0,(b-45)/55)*0.30;
+  let inten=1, x=0, y=mid(0), dir=1;
+  const seg=W/14, down=cssv('--down')||'#3FD3F2', bad=cssv('--bad')||'#F07A7A';
+  for(let i=0;i<14;i++){
+    const nx=x+seg, ny=mid(nx)+(dir>0?19:-19);
+    bcx.beginPath(); bcx.moveTo(x,y); bcx.lineTo(nx,ny);
+    bcx.strokeStyle=down; bcx.globalAlpha=Math.max(.05,inten); bcx.lineWidth=3; bcx.stroke();
+    if(leak>0){
+      bcx.beginPath(); bcx.moveTo(nx,ny); bcx.lineTo(nx+22,ny+(dir>0?46:-46));
+      bcx.strokeStyle=bad; bcx.globalAlpha=Math.min(.85,leak*3*inten); bcx.lineWidth=2; bcx.stroke();
+      inten*=(1-leak);
+    }
+    x=nx; y=ny; dir=-dir;
+  }
+  bcx.globalAlpha=1;
+  const pct=Math.round(inten*100);
+  bendPct.textContent=pct+'%';
+  bendPct.style.color=pct>80?cssv('--good'):pct>40?cssv('--warn'):cssv('--bad');
+  oBend.textContent=b<30?'gentle':b<46?'noticeable':b<70?'too tight!':'stapled to the wall 💀';
+  bendMsg.textContent= b<46?'Shallow bounces — every photon makes it. This is why fiber can snake through walls and conduits for kilometers.'
+    : pct>40?'Past the critical angle at each bounce — photons are escaping (red). The link still works… barely. An OTDR would spot this bend from kilometers away.'
+    :'Massive macrobend loss. The ONT reports “low light,” the operations cloud opens a ticket, and a tech finds the stapled cable. Unstaple it!';
+}
+rBend.addEventListener('input',drawBend); drawBend();
+document.getElementById('themeBtn').addEventListener('click',()=>setTimeout(drawBend,60));
+
+/* ---------- ARCADE: PACKET REASSEMBLY ---------- */
+const PKT_MSGS=["FIBER IS FAST","LIGHT CARRIES BITS","PACKETS FIND A WAY","NO TRUCK ROLL TODAY"];
+const pktPool=document.getElementById('pktPool'), pktAsm=document.getElementById('pktAsm'),
+      pktMsg2=document.getElementById('pktMsg'), pktReset=document.getElementById('pktReset');
+let pktNext=1, pktMi=0;
+function pktLoad(){
+  const msg=PKT_MSGS[pktMi%PKT_MSGS.length]; pktMi++;
+  const size=Math.ceil(msg.length/6), chunks=[];
+  for(let i=0;i<msg.length;i+=size) chunks.push(msg.slice(i,i+size));
+  pktNext=1; pktAsm.textContent=''; pktMsg2.textContent=''; pktMsg2.className='labmsg';
+  pktPool.innerHTML='';
+  chunks.map((c,i)=>[c,i+1]).sort(()=>Math.random()-.5).forEach(([c,n])=>{
+    const bn=document.createElement('button'); bn.className='pkt';
+    bn.innerHTML=`<span class="seq">#${n}</span>${c.replaceAll(' ','·')}`;
+    bn.onclick=()=>{
+      if(n===pktNext){ bn.disabled=true; pktAsm.textContent+=c; pktNext++;
+        if(pktNext>chunks.length){ pktMsg2.className='labmsg good';
+          pktMsg2.textContent='✅ Reassembled! This is exactly what TCP does with sequence numbers — packets can race down different routes, but the message always rebuilds in order.'; }
+      } else { bn.classList.remove('err'); void bn.offsetWidth; bn.classList.add('err');
+        pktMsg2.className='labmsg badm';
+        pktMsg2.textContent=`That’s packet #${n} — a real receiver would buffer it and wait for #${pktNext} first.`; }
+    };
+    pktPool.appendChild(bn);
+  });
+}
+pktReset.onclick=pktLoad; pktLoad();
+
+/* ---------- ARCADE: MATCH GAME ---------- */
+const MATCH=[
+ ["PON","One shared laser, split by dumb glass to 32 homes"],
+ ["OLT","The neighborhood machine that runs the whole PON"],
+ ["ONT","The home box that turns light into Ethernet"],
+ ["VLAN","A colored hallway — traffic can’t see into other hallways"],
+ ["DHCP","The front desk that hands your device an IP address"],
+ ["ACS","Manages a million home routers remotely — no vans needed"],
+ ["EMS","The robot butler between the cloud and the hardware"],
+ ["Truck roll","Sending a human in a van — the expensive last resort"],
+];
+const mTerms=document.getElementById('mTerms'), mDefs=document.getElementById('mDefs'), mMsg=document.getElementById('mMsg');
+let selTerm=null, matchedN=0;
+function mkM(txt,col,key,isTerm){
+  const bn=document.createElement('button'); bn.className='mbtn'; bn.textContent=txt; bn.dataset.k=key;
+  bn.onclick=()=>{
+    if(bn.classList.contains('done')) return;
+    if(isTerm){ mTerms.querySelectorAll('.mbtn').forEach(x=>x.classList.remove('selm')); selTerm=bn; bn.classList.add('selm'); }
+    else{
+      if(!selTerm){ mMsg.className='labmsg'; mMsg.textContent='Pick a term on the left first.'; return; }
+      if(selTerm.dataset.k===bn.dataset.k){
+        selTerm.classList.add('done'); bn.classList.add('done'); selTerm.classList.remove('selm'); selTerm=null; matchedN++;
+        mMsg.className='labmsg good';
+        mMsg.textContent=matchedN===MATCH.length?'🏆 Board cleared — you speak broadband!':'✅ Match!';
+        if(matchedN===MATCH.length) confetti();
+      }else{ bn.classList.add('badf'); setTimeout(()=>bn.classList.remove('badf'),450);
+        mMsg.className='labmsg badm'; mMsg.textContent='Nope — not that one.'; }
+    }
+  };
+  col.appendChild(bn);
+}
+MATCH.map((p,i)=>[p[0],i]).sort(()=>Math.random()-.5).forEach(([t,i])=>mkM(t,mTerms,i,true));
+MATCH.map((p,i)=>[p[1],i]).sort(()=>Math.random()-.5).forEach(([d,i])=>mkM(d,mDefs,i,false));
 
 /* ---------- QUIZ ---------- */
 const QUIZ=[
