@@ -1,0 +1,1467 @@
+<title>The Fiber Field Guide — From Light in Glass to Clicks in a Cloud</title>
+<style>
+/* ---------- tokens ---------- */
+:root{
+  --bg:#F4F6F9; --surface:#FFFFFF; --surface2:#EBEFF4;
+  --ink:#141F2E; --muted:#54657C; --line:#D8DFE9;
+  --down:#0E7C99; --up:#A8600A;
+  --good:#177A42; --bad:#B32B2B; --warn:#96690B;
+  --eli5bg:#FFF8E7; --eli5line:#E8C86A; --eli5ink:#5C4A12;
+  --heroink:#E8F0FA; --herobg:#0B1424;
+  --shadow:0 1px 2px rgba(15,25,40,.06),0 8px 24px rgba(15,25,40,.07);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0B1120; --surface:#121B2E; --surface2:#182340;
+    --ink:#E4ECF7; --muted:#8DA1BC; --line:#25334E;
+    --down:#3FD3F2; --up:#F2A94A;
+    --good:#4CC97E; --bad:#F07A7A; --warn:#E5B84C;
+    --eli5bg:#2A2410; --eli5line:#7A6420; --eli5ink:#F0DFA8;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="light"]{
+  --bg:#F4F6F9; --surface:#FFFFFF; --surface2:#EBEFF4;
+  --ink:#141F2E; --muted:#54657C; --line:#D8DFE9;
+  --down:#0E7C99; --up:#A8600A;
+  --good:#177A42; --bad:#B32B2B; --warn:#96690B;
+  --eli5bg:#FFF8E7; --eli5line:#E8C86A; --eli5ink:#5C4A12;
+  --shadow:0 1px 2px rgba(15,25,40,.06),0 8px 24px rgba(15,25,40,.07);
+}
+:root[data-theme="dark"]{
+  --bg:#0B1120; --surface:#121B2E; --surface2:#182340;
+  --ink:#E4ECF7; --muted:#8DA1BC; --line:#25334E;
+  --down:#3FD3F2; --up:#F2A94A;
+  --good:#4CC97E; --bad:#F07A7A; --warn:#E5B84C;
+  --eli5bg:#2A2410; --eli5line:#7A6420; --eli5ink:#F0DFA8;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+}
+
+/* ---------- base ---------- */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  overflow-x:hidden;
+}
+h1,h2,h3{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif; line-height:1.2; text-wrap:balance; margin:0 0 .5em}
+h2{font-size:2.1rem; margin-top:0}
+h3{font-size:1.25rem}
+p{margin:.7em 0}
+code,.mono{font-family:ui-monospace,"SF Mono","Cascadia Code",Consolas,Menlo,monospace; font-size:.92em}
+a{color:var(--down)}
+section{max-width:1060px; margin:0 auto; padding:60px 24px}
+.prose{max-width:68ch}
+.eyebrow{font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-weight:600; margin-bottom:8px}
+.lede{font-size:1.12rem; color:var(--muted)}
+:focus-visible{outline:2px solid var(--down); outline-offset:2px}
+
+/* scroll reveal */
+.reveal{opacity:0; transform:translateY(24px); transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1; transform:none}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important; transition:none!important}
+  .reveal{opacity:1; transform:none}
+}
+
+/* ---------- ELI5 crayon boxes ---------- */
+.eli5{
+  background:var(--eli5bg); border:2px dashed var(--eli5line); color:var(--eli5ink);
+  border-radius:14px; padding:14px 18px; margin:18px 0; max-width:70ch;
+  font-family:"Chalkboard SE","Comic Sans MS","Marker Felt",cursive; font-size:1rem; line-height:1.55;
+  transform:rotate(-.35deg);
+}
+.eli5 .who{display:block; font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; font-weight:700; margin-bottom:4px; opacity:.75}
+
+/* ---------- nav ---------- */
+nav{
+  position:sticky; top:0; z-index:50; background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:4px; padding:8px 16px; overflow-x:auto; white-space:nowrap;
+}
+nav .brand{font-weight:700; font-size:.9rem; margin-right:10px; color:var(--ink)}
+nav a{color:var(--muted); text-decoration:none; font-size:.85rem; padding:6px 10px; border-radius:6px}
+nav a:hover{background:var(--surface2); color:var(--ink)}
+nav .theme{margin-left:auto; border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:6px; padding:5px 10px; cursor:pointer; font-size:.85rem}
+
+/* ---------- hero ---------- */
+header.hero{background:var(--herobg); color:var(--heroink); padding:84px 24px 66px; position:relative; overflow:hidden}
+header.hero .inner{max-width:1060px; margin:0 auto; position:relative; z-index:2}
+header.hero h1{font-size:clamp(2.2rem,5vw,3.7rem); margin:.2em 0 .3em}
+header.hero .eyebrow{color:#7FA3C8}
+header.hero p{max-width:62ch; color:#B9CBE0; font-size:1.1rem}
+.stars{position:absolute; inset:0; z-index:1; pointer-events:none}
+.stars i{position:absolute; width:2px; height:2px; border-radius:50%; background:#3B5A7E; animation:tw 3s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
+.fiberline{width:100%; max-width:1060px; margin:34px auto 0; display:block; overflow:visible}
+.pulse-d{animation:run 3.2s linear infinite}
+.pulse-u{animation:runback 4.1s linear infinite}
+@keyframes run{from{transform:translateX(-30px)}to{transform:translateX(1030px)}}
+@keyframes runback{from{transform:translateX(1030px)}to{transform:translateX(-30px)}}
+.legend{display:flex; flex-wrap:wrap; gap:18px; margin-top:10px; font-size:.8rem; color:#8FA8C4}
+.legend .dot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px}
+
+/* ---------- cards / details ---------- */
+.card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:20px 22px; box-shadow:var(--shadow)}
+details.lesson{background:var(--surface); border:1px solid var(--line); border-radius:12px; margin:14px 0; box-shadow:var(--shadow)}
+details.lesson summary{cursor:pointer; padding:16px 20px; font-weight:600; list-style:none; display:flex; align-items:center; gap:10px}
+details.lesson summary::before{content:"+"; font-family:ui-monospace,monospace; color:var(--down); font-size:1.1rem; width:1em}
+details.lesson[open] summary::before{content:"–"}
+details.lesson .body{padding:0 20px 18px; max-width:70ch}
+.tag{display:inline-block; font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; font-weight:700; padding:2px 8px; border-radius:99px; border:1px solid var(--line); color:var(--muted)}
+.btn{
+  border:1.5px solid var(--line); background:var(--surface); color:var(--ink); border-radius:10px;
+  padding:9px 18px; font-size:.95rem; font-weight:600; cursor:pointer; font-family:inherit;
+  transition:transform .12s, border-color .15s;
+}
+.btn:hover:not(:disabled){border-color:var(--down); transform:translateY(-1px)}
+.btn:active:not(:disabled){transform:translateY(0) scale(.98)}
+.btn:disabled{opacity:.45; cursor:default}
+.btn.primary{background:var(--down); border-color:var(--down); color:#fff}
+:root[data-theme="dark"] .btn.primary,:root:not([data-theme="light"]) .btn.primary{color:#06202B}
+.btn.danger{border-color:var(--bad); color:var(--bad)}
+
+/* ---------- glossary-term tooltips ---------- */
+.gt{border-bottom:1.5px dotted var(--down); cursor:help; font-style:normal}
+#tip{
+  position:absolute; z-index:100; max-width:320px; background:var(--surface); color:var(--ink);
+  border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:.85rem; line-height:1.5;
+  box-shadow:var(--shadow); display:none;
+}
+#tip b{color:var(--down)}
+
+/* ---------- laser lab ---------- */
+.lab{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:20px 22px; box-shadow:var(--shadow); margin-top:16px}
+.lab .row{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px}
+.lab input[type=text]{
+  border:1.5px solid var(--line); background:var(--surface2); color:var(--ink); border-radius:10px;
+  padding:9px 14px; font-size:1rem; font-family:inherit; width:130px; text-transform:uppercase;
+}
+.bitreadout{font-family:ui-monospace,monospace; font-size:1.05rem; letter-spacing:.35em; color:var(--muted); min-height:1.6em}
+.bitreadout b{color:var(--down)}
+.bitwire{position:relative; height:64px; background:linear-gradient(var(--surface2),var(--surface2)) center/100% 4px no-repeat; overflow:hidden; border-radius:8px}
+.bitwire .lamp{position:absolute; left:8px; top:50%; transform:translateY(-50%); font-size:26px}
+.bitwire .eye{position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:26px}
+.bit{
+  position:absolute; top:50%; left:44px; width:16px; height:16px; margin-top:-8px; border-radius:50%;
+  animation:bitfly 2.2s linear forwards;
+}
+.bit.on{background:var(--down); box-shadow:0 0 12px var(--down)}
+.bit.off{background:transparent; border:2px dashed var(--muted); opacity:.55}
+@keyframes bitfly{from{transform:translateX(0)}to{transform:translateX(min(86vw,880px))}}
+.decoded{min-height:1.5em; font-weight:700; color:var(--good)}
+
+/* ---------- pon playground ---------- */
+.pon-wrap{overflow-x:auto; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px; box-shadow:var(--shadow)}
+.pon-wrap svg{min-width:760px; width:100%; display:block}
+.node{cursor:pointer}
+.node rect,.node circle{fill:var(--surface2); stroke:var(--muted); stroke-width:1.5; transition:stroke .15s}
+.node:hover rect,.node:hover circle,.node.sel rect,.node.sel circle{stroke:var(--down); stroke-width:2.5}
+.node.target rect{stroke:var(--good); stroke-width:3}
+.node text{fill:var(--ink); font-size:13px; font-weight:600; pointer-events:none}
+.node .sub{font-size:10.5px; font-weight:400; fill:var(--muted)}
+.wire{stroke:var(--muted); stroke-width:2; fill:none; opacity:.65; transition:stroke .3s}
+.wire.cut{stroke:var(--bad); stroke-dasharray:6 8; opacity:1}
+.emote{font-size:22px; opacity:0}
+.emote.pop{animation:pop 1.6s ease forwards}
+@keyframes pop{0%{opacity:0; transform:scale(.3)}20%{opacity:1; transform:scale(1.25)}45%{transform:scale(1)}80%{opacity:1}100%{opacity:0}}
+.pon-controls{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; align-items:center}
+.pon-note{font-size:.9rem; color:var(--muted); min-height:1.6em; margin-top:8px}
+.diagram-note{font-size:.85rem; color:var(--muted); margin-top:8px}
+#pon-info{margin-top:14px}
+#pon-info h3{margin-bottom:.2em}
+.scissors{cursor:pointer; font-size:20px; user-select:none}
+
+/* alarm storm */
+.storm{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px}
+@media (max-width:720px){.storm{grid-template-columns:1fr}}
+.alarmq{min-height:150px; max-height:220px; overflow:hidden; position:relative}
+.alarmq .qhead,.incident .qhead{font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; font-weight:700; color:var(--muted); margin-bottom:8px}
+.alarmchip{
+  display:inline-block; font-size:.72rem; font-family:ui-monospace,monospace; margin:2px;
+  border:1px solid var(--bad); color:var(--bad); border-radius:6px; padding:2px 7px;
+  animation:drop .4s ease backwards;
+}
+@keyframes drop{from{opacity:0; transform:translateY(-14px)}to{opacity:1; transform:none}}
+.incidentcard{
+  border:2px solid var(--bad); border-radius:10px; padding:12px 14px; display:none;
+  animation:pop2 .5s ease;
+}
+@keyframes pop2{from{transform:scale(.85); opacity:0}to{transform:none; opacity:1}}
+.incidentcard.show{display:block}
+.incidentcard b{color:var(--bad)}
+.count{font-variant-numeric:tabular-nums; font-weight:700}
+
+/* ---------- architecture ---------- */
+.arch{display:grid; grid-template-columns:minmax(0,3fr) minmax(260px,2fr); gap:18px; align-items:start}
+@media (max-width:860px){ .arch{grid-template-columns:1fr} }
+.layers{display:flex; flex-direction:column; gap:10px}
+.layer{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:10px 14px 12px; box-shadow:var(--shadow); transition:box-shadow .3s, border-color .3s}
+.layer.glow{border-color:var(--down); box-shadow:0 0 0 3px color-mix(in srgb,var(--down) 25%,transparent)}
+.layer .lname{font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); font-weight:700; margin-bottom:8px}
+.blocks{display:flex; flex-wrap:wrap; gap:8px}
+.blk{
+  border:1.5px solid var(--line); background:var(--surface2); color:var(--ink);
+  border-radius:8px; padding:8px 12px; font-size:.88rem; font-weight:600; cursor:pointer;
+  font-family:inherit; transition:border-color .15s, transform .12s;
+}
+.blk:hover{border-color:var(--down); transform:translateY(-1px)}
+.blk.sel{border-color:var(--down); box-shadow:0 0 0 3px color-mix(in srgb,var(--down) 22%,transparent)}
+.downflow{text-align:center; color:var(--muted); font-size:.78rem; letter-spacing:.05em; margin:-2px 0}
+.archpanel{position:sticky; top:64px}
+.archpanel .probe{
+  margin-top:12px; border-left:3px solid var(--up); background:color-mix(in srgb,var(--up) 8%,var(--surface));
+  padding:10px 14px; border-radius:0 8px 8px 0; font-size:.9rem;
+}
+.archpanel .probe b{color:var(--up)}
+
+/* ---------- flow stepper ---------- */
+.actors{display:flex; flex-wrap:wrap; gap:8px; margin:16px 0}
+.actor{border:1.5px solid var(--line); background:var(--surface); border-radius:99px; padding:5px 14px; font-size:.85rem; font-weight:600; color:var(--muted); transition:all .25s}
+.actor.on{border-color:var(--down); color:var(--down); background:color-mix(in srgb,var(--down) 10%,var(--surface)); transform:scale(1.06)}
+.stepbox{min-height:190px; position:relative; overflow:hidden}
+.stepbox .scene{font-size:2rem; float:right; margin-left:12px}
+.stepbox .stepnum{font-family:ui-monospace,monospace; color:var(--down); font-weight:700; font-size:.85rem}
+.stepnav{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:14px}
+.dots{display:flex; gap:6px; margin-left:auto}
+.dots i{width:9px; height:9px; border-radius:50%; background:var(--line); transition:background .3s}
+.dots i.on{background:var(--down)}
+.testnote{margin-top:10px; border-left:3px solid var(--up); padding:8px 12px; font-size:.88rem; background:color-mix(in srgb,var(--up) 8%,var(--surface)); border-radius:0 8px 8px 0}
+.testnote b{color:var(--up)}
+#confetti{position:fixed; inset:0; pointer-events:none; z-index:200}
+
+/* ---------- wavelength river ---------- */
+.glass{position:relative; height:150px; background:var(--surface2); border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-top:12px}
+.glass .glabel{position:absolute; left:12px; font-size:.72rem; font-family:ui-monospace,monospace; color:var(--ink); opacity:.85; transform:translateY(-16px)}
+.stream{position:absolute; left:0; right:0; height:9px; border-radius:5px; transition:opacity .3s}
+.stream.flow-d{animation:flowd 1s linear infinite}
+.stream.flow-u{animation:flowu 1s linear infinite}
+@keyframes flowd{to{background-position:36px 0}}
+@keyframes flowu{to{background-position:-36px 0}}
+.stream.off{opacity:.08}
+.wavechips{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+.wavechip{border:2px solid var(--line); border-radius:99px; padding:6px 14px; font-size:.85rem; font-weight:600; cursor:pointer; background:var(--surface); color:var(--muted); font-family:inherit}
+.wavechip.on{color:var(--ink)}
+
+/* ---------- optical budget calculator ---------- */
+.calc{display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start; margin-top:14px}
+@media (max-width:760px){.calc{grid-template-columns:1fr}}
+.calc .ctl{margin-bottom:14px}
+.calc label{display:flex; justify-content:space-between; font-size:.9rem; font-weight:600; margin-bottom:4px}
+.calc label output{font-family:ui-monospace,monospace; color:var(--down); font-variant-numeric:tabular-nums}
+.calc input[type=range]{width:100%; accent-color:var(--down)}
+.calc .check{display:flex; gap:8px; align-items:center; font-size:.9rem; font-weight:600}
+.meterwrap{position:sticky; top:70px}
+.meter{position:relative; height:38px; border-radius:10px; overflow:hidden; border:1px solid var(--line);
+  background:linear-gradient(90deg, var(--warn) 0 22.9%, var(--good) 22.9% 68.6%, var(--warn) 68.6% 80%, var(--bad) 80% 100%)}
+.meter .needle{position:absolute; top:-2px; bottom:-2px; width:4px; background:var(--ink); border-radius:2px; transition:left .25s ease}
+.meterscale{display:flex; justify-content:space-between; font-size:.72rem; font-family:ui-monospace,monospace; color:var(--muted); margin-top:4px}
+.rxval{font-size:2rem; font-weight:700; font-family:ui-monospace,monospace; font-variant-numeric:tabular-nums; margin:10px 0 2px}
+.verdict{font-weight:600; min-height:3em}
+.verdict.ok{color:var(--good)} .verdict.warnv{color:var(--warn)} .verdict.dead{color:var(--bad)}
+.ledger{font-size:.85rem; font-family:ui-monospace,monospace; color:var(--muted); border-top:1px dashed var(--line); margin-top:10px; padding-top:8px}
+.ledger div{display:flex; justify-content:space-between}
+
+/* ---------- troubleshooting lab game ---------- */
+.chain{display:flex; flex-wrap:wrap; gap:8px; margin:16px 0; align-items:center}
+.chain .arrow{color:var(--muted); font-size:.9rem}
+.comp{
+  border:2px solid var(--line); background:var(--surface); color:var(--ink); border-radius:12px;
+  padding:10px 14px; font-size:.92rem; font-weight:700; cursor:pointer; font-family:inherit;
+  display:flex; flex-direction:column; align-items:center; gap:2px; min-width:96px;
+  transition:transform .12s, border-color .15s;
+}
+.comp small{font-weight:400; font-size:.7rem; color:var(--muted)}
+.comp:hover:not(:disabled){border-color:var(--down); transform:translateY(-2px)}
+.comp.right{border-color:var(--good); background:color-mix(in srgb,var(--good) 14%,var(--surface))}
+.comp.wrong{border-color:var(--bad); animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.casecard{border-left:4px solid var(--warn); }
+.casecard .ticket{font-family:ui-monospace,monospace; font-size:.78rem; color:var(--muted); letter-spacing:.05em}
+.clues{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0}
+.clue{border:1px dashed var(--line); border-radius:8px; padding:5px 12px; font-size:.85rem; background:var(--surface2)}
+.labmsg{min-height:2.2em; font-size:.95rem; margin-top:10px}
+.labmsg.good{color:var(--good); font-weight:600}
+.labmsg.badm{color:var(--bad)}
+.labscore{font-variant-numeric:tabular-nums; font-weight:700; color:var(--muted); font-size:.9rem; margin-left:auto}
+.labdone{font-size:1.15rem; font-weight:700; margin-top:14px; display:none}
+.labdone.show{display:block; animation:pop2 .5s ease}
+
+/* ---------- quiz ---------- */
+.quiz .q{margin:18px 0}
+.quiz .opts{display:grid; gap:8px; margin-top:10px}
+.quiz .opt{
+  text-align:left; border:1.5px solid var(--line); background:var(--surface); color:var(--ink);
+  border-radius:10px; padding:10px 14px; font-size:.95rem; cursor:pointer; font-family:inherit; transition:all .15s;
+}
+.quiz .opt:hover:not(:disabled){border-color:var(--down)}
+.quiz .opt.right{border-color:var(--good); background:color-mix(in srgb,var(--good) 12%,var(--surface)); font-weight:700}
+.quiz .opt.wrong{border-color:var(--bad); background:color-mix(in srgb,var(--bad) 10%,var(--surface)); opacity:.8}
+.quiz .why{display:none; font-size:.88rem; color:var(--muted); margin-top:8px; border-left:3px solid var(--good); padding-left:10px}
+.quiz .why.show{display:block}
+.scorecard{font-size:1.2rem; font-weight:700; margin-top:16px; display:none}
+.scorecard.show{display:block; animation:pop2 .5s ease}
+
+/* ---------- glossary ---------- */
+.gsearch{width:100%; max-width:420px; padding:10px 14px; font-size:1rem; border:1.5px solid var(--line); border-radius:10px; background:var(--surface); color:var(--ink); font-family:inherit}
+.gcats{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 18px}
+.gcats button{border:1.5px solid var(--line); background:var(--surface); color:var(--muted); border-radius:99px; padding:4px 14px; font-size:.82rem; font-weight:600; cursor:pointer; font-family:inherit}
+.gcats button.on{border-color:var(--down); color:var(--down)}
+.ggrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px}
+.gcard{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; box-shadow:var(--shadow); transition:transform .15s}
+.gcard:hover{transform:translateY(-2px)}
+.gcard .term{font-family:ui-monospace,"SF Mono",Consolas,monospace; font-weight:700; color:var(--down); font-size:.95rem}
+.gcard .full{font-size:.8rem; color:var(--muted); margin:2px 0 6px}
+.gcard .def{font-size:.9rem}
+.gcard .use{font-size:.83rem; color:var(--muted); font-style:italic; margin-top:8px; border-top:1px dashed var(--line); padding-top:8px}
+.gcount{color:var(--muted); font-size:.85rem; margin-top:12px}
+
+/* ---------- tester table ---------- */
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse; width:100%; font-size:.92rem; min-width:640px}
+th,td{text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted)}
+footer{border-top:1px solid var(--line); color:var(--muted); font-size:.85rem; padding:26px 24px 60px; text-align:center}
+</style>
+
+<nav aria-label="Sections">
+  <span class="brand">🌐 Fiber Field Guide</span>
+  <a href="#big-picture">Big picture</a>
+  <a href="#optics">Light lab</a>
+  <a href="#pon">PON</a>
+  <a href="#budget">Budget calc</a>
+  <a href="#networking">Networking</a>
+  <a href="#stack">The stack</a>
+  <a href="#opscloud">Cloud BE</a>
+  <a href="#flow">Add subscriber</a>
+  <a href="#tester">Tester’s lens</a>
+  <a href="#labgame">🧪 Lab</a>
+  <a href="#quiz">Quiz</a>
+  <a href="#glossary">Glossary</a>
+  <button class="theme" id="themeBtn" aria-label="Toggle color theme">◐ Theme</button>
+</nav>
+
+<header class="hero">
+  <div class="stars" id="stars" aria-hidden="true"></div>
+  <div class="inner">
+    <div class="eyebrow">The Fiber Field Guide · free · interactive · remix-friendly</div>
+    <h1>From light in glass to clicks in a cloud</h1>
+    <p>Somewhere, a technician plugs a hair-thin strand of glass into a box on a wall. Milliseconds later, a dashboard
+    a thousand miles away knows about it. This guide tells that whole story — photon → PON → protocols → operator cloud —
+    with playable toys, real field math, a troubleshooting game, and plain-English explanations of every acronym.
+    Built by a broadband backend test engineer while learning the trade; useful to anyone entering it.</p>
+    <svg class="fiberline" viewBox="0 0 1000 60" aria-hidden="true">
+      <line x1="0" y1="30" x2="1000" y2="30" stroke="#24405E" stroke-width="3"/>
+      <circle class="pulse-d" cx="0" cy="24" r="5" fill="#3FD3F2"/>
+      <circle class="pulse-d" cx="0" cy="24" r="5" fill="#3FD3F2" style="animation-delay:-1.4s"/>
+      <circle class="pulse-u" cx="0" cy="36" r="5" fill="#F2A94A"/>
+      <circle class="pulse-u" cx="0" cy="36" r="5" fill="#F2A94A" style="animation-delay:-2.2s"/>
+    </svg>
+    <div class="legend">
+      <span><i class="dot" style="background:#3FD3F2"></i>Downstream light · network → home</span>
+      <span><i class="dot" style="background:#F2A94A"></i>Upstream light · home → network</span>
+    </div>
+  </div>
+</header>
+
+<section id="big-picture" class="reveal">
+  <div class="eyebrow">Orientation</div>
+  <h2>The big picture in one paragraph</h2>
+  <div class="prose">
+    <p>A fiber internet business is a ladder of technology: the <span class="gt" data-t="OLT">OLT</span> hardware
+    that lights up neighborhoods, the <span class="gt" data-t="ONT">ONT</span> and
+    <span class="gt" data-t="RG">router</span> in the subscriber’s home, the management software
+    (an <span class="gt" data-t="EMS">EMS</span>) that configures those devices, and cloud software
+    that turns the torrent of data those devices emit into something an internet provider can act on.
+    An <b>operations cloud</b> is the piece built for the network operations team: it watches network health,
+    raises and correlates <span class="gt" data-t="Alarm">alarms</span>, predicts problems with ML, and drives
+    operations like adding a <span class="gt" data-t="Subscriber">subscriber</span> or activating a
+    <span class="gt" data-t="Service">service</span>. My job is testing its <b>backend</b>: the APIs, pipelines, and
+    services between the network and the dashboard.</p>
+  </div>
+  <div class="eli5">
+    <span class="who">🖍️ Like you’re five</span>
+    Imagine a huge toy train set (the internet cables) delivering candy (internet) to every house in town.
+    Someone builds the train station, the tracks, and the mailbox at each house — <b>and</b> a magic control room in the sky
+    that watches every train at once. My job? I’m the kid who tries to break the control room <i>on purpose</i>,
+    before real customers ever see it break.
+  </div>
+</section>
+
+<section id="optics" class="reveal">
+  <div class="eyebrow">Lesson 0 · Basic electronics &amp; optics</div>
+  <h2>The Light Lab: why glass beat copper</h2>
+  <div class="eli5">
+    <span class="who">🖍️ Like you’re five</span>
+    You and your friend have flashlights and a secret code: <b>blink = 1, dark = 0</b>. Now imagine a flashlight that can
+    blink <b>ten billion times every second</b>, shining down a noodle of glass so pure you could see through 20 kilometers
+    of it. That’s fiber internet. That’s the whole trick.
+  </div>
+
+  <div class="lab">
+    <h3>🔦 Send your name as light</h3>
+    <p class="prose" style="margin-top:0">Every letter is secretly a number, and every number is secretly blinks.
+    Type a letter (or your initial) and fire the laser:</p>
+    <div class="row">
+      <input type="text" id="charInput" maxlength="1" value="A" aria-label="Letter to transmit">
+      <button class="btn primary" id="fireBtn">⚡ Fire the laser</button>
+    </div>
+    <div class="bitreadout" id="bitreadout">A = 01000001</div>
+    <div class="bitwire" id="bitwire">
+      <span class="lamp">🔦</span>
+      <span class="eye">👁️</span>
+    </div>
+    <div class="decoded" id="decoded" aria-live="polite"></div>
+    <p class="diagram-note">Bright dot = laser ON = 1 · hollow dot = laser OFF = 0. A real <span class="gt" data-t="PON">PON</span>
+    laser does this ~10,000,000,000× per second. The 👁️ is a <b>photodiode</b> — an electric eye that turns light back into bits.</p>
+  </div>
+
+  <details class="lesson">
+    <summary>The grown-up version: attenuation, wavelengths, dBm</summary>
+    <div class="body">
+      <p><b>Attenuation</b> — signal fading with distance — is fiber’s superpower. Copper DSL degrades badly after a few
+      hundred meters; fiber loses so little light (~0.35&nbsp;dB/km) that one <span class="gt" data-t="OLT">OLT</span> port
+      serves homes <b>20&nbsp;km away</b> with nothing powered in between. Glass is also immune to electromagnetic
+      interference (lightning and motors can’t induce noise into it), and can carry many signals at once on different
+      <b>wavelengths</b> (colors) — which is exactly how upload and download share one strand without colliding.</p>
+      <p>Field vocabulary: <b>light levels</b> are measured in <span class="gt" data-t="dBm">dBm</span> (received power:
+      −18&nbsp;dBm healthy, −28&nbsp;dBm trouble); the <b>optical budget</b> is how much loss a link can tolerate; a splice or a
+      dirty connector “eats budget.” When a tech says an ONT has <i>low light</i>, the operations cloud is often what told them.</p>
+    </div>
+  </details>
+</section>
+
+<section id="pon" class="reveal">
+  <div class="eyebrow">Lesson 1 · The access network</div>
+  <h2>The PON Playground: one laser, thirty-two living rooms</h2>
+  <div class="eli5">
+    <span class="who">🖍️ Like you’re five</span>
+    One garden hose leaves the station… and splits into 32 little hoses, one per house, using a splitter that’s
+    just <b>dumb glass</b> — no batteries, nothing to break. Downhill (downloads), the station <b>shouts to everyone at once</b>,
+    but each mailbox only opens letters with its own name (everything’s locked 🔒). Uphill (uploads), the houses
+    <b>take turns talking</b> so their voices never collide — the station is the teacher calling on students.
+  </div>
+
+  <p class="prose">Try it. Click a home to choose who the download is for, then run the animations. Click any box for its
+  grown-up explanation. And… try the scissors. ✂️</p>
+
+  <div class="pon-wrap">
+    <svg viewBox="0 0 960 330" role="group" aria-label="Interactive PON diagram: OLT to splitter to ONTs">
+      <defs>
+        <path id="p-feeder" d="M195 160 H419"/>
+        <path id="p-b1" d="M471 160 C560 160 560 60 680 60"/>
+        <path id="p-b2" d="M471 160 C560 160 560 128 680 128"/>
+        <path id="p-b3" d="M471 160 C560 160 560 196 680 196"/>
+        <path id="p-b4" d="M471 160 C560 160 560 264 680 264"/>
+      </defs>
+      <use href="#p-feeder" class="wire" id="w-feeder"/>
+      <use href="#p-b1" class="wire"/>
+      <use href="#p-b2" class="wire"/>
+      <use href="#p-b3" class="wire"/>
+      <use href="#p-b4" class="wire"/>
+      <path class="wire" d="M60 160 H100" stroke-dasharray="5 5"/>
+      <text x="60" y="120" fill="var(--muted)" font-size="11">to core network / internet</text>
+      <text x="300" y="145" text-anchor="middle" fill="var(--muted)" font-size="11">feeder fiber · up to ~20 km</text>
+      <text class="scissors" id="scissors" x="300" y="185" text-anchor="middle" role="button" tabindex="0" aria-label="Cut the fiber">✂️</text>
+
+      <g class="node" data-k="olt" tabindex="0" role="button" aria-label="OLT">
+        <rect x="100" y="120" width="95" height="80" rx="8"/>
+        <text x="147" y="155" text-anchor="middle">OLT</text>
+        <text class="sub" x="147" y="175" text-anchor="middle">OLT chassis</text>
+      </g>
+      <g class="node" data-k="split" tabindex="0" role="button" aria-label="Passive splitter">
+        <circle cx="445" cy="160" r="26"/>
+        <text x="445" y="165" text-anchor="middle" font-size="11">1:32</text>
+        <text class="sub" x="445" y="215" text-anchor="middle">passive splitter</text>
+      </g>
+
+      <g class="node home" data-k="ont" data-h="0" tabindex="0" role="button" aria-label="ONT home 1">
+        <rect x="680" y="38" width="120" height="44" rx="8"/>
+        <text x="732" y="58" text-anchor="middle">ONT 🏠</text>
+        <text class="sub" x="740" y="74" text-anchor="middle">home #1</text>
+        <text class="emote" x="812" y="66"> </text>
+      </g>
+      <g class="node home" data-k="ont" data-h="1" tabindex="0" role="button" aria-label="ONT home 2">
+        <rect x="680" y="106" width="120" height="44" rx="8"/>
+        <text x="732" y="126" text-anchor="middle">ONT 🏠</text>
+        <text class="sub" x="740" y="142" text-anchor="middle">home #2</text>
+        <text class="emote" x="812" y="134"> </text>
+      </g>
+      <g class="node home" data-k="ont" data-h="2" tabindex="0" role="button" aria-label="ONT home 3">
+        <rect x="680" y="174" width="120" height="44" rx="8"/>
+        <text x="732" y="194" text-anchor="middle">ONT 🏠</text>
+        <text class="sub" x="740" y="210" text-anchor="middle">home #3</text>
+        <text class="emote" x="812" y="202"> </text>
+      </g>
+      <g class="node home" data-k="rg" data-h="3" tabindex="0" role="button" aria-label="ONT with gateway home 32">
+        <rect x="680" y="242" width="120" height="44" rx="8"/>
+        <text x="732" y="262" text-anchor="middle">ONT+RG 🏠</text>
+        <text class="sub" x="740" y="278" text-anchor="middle">smart gateway · #32</text>
+        <text class="emote" x="812" y="270"> </text>
+      </g>
+
+      <!-- animated light pulses (SMIL, fired from JS) -->
+      <circle id="dot-feeder" r="7" fill="var(--down)" opacity="0">
+        <animateMotion id="am-feeder" dur="0.9s" begin="indefinite"><mpath href="#p-feeder"/></animateMotion>
+      </circle>
+      <circle id="dot-b1" r="6" fill="var(--down)" opacity="0"><animateMotion id="am-b1" dur="0.7s" begin="indefinite"><mpath href="#p-b1"/></animateMotion></circle>
+      <circle id="dot-b2" r="6" fill="var(--down)" opacity="0"><animateMotion id="am-b2" dur="0.7s" begin="indefinite"><mpath href="#p-b2"/></animateMotion></circle>
+      <circle id="dot-b3" r="6" fill="var(--down)" opacity="0"><animateMotion id="am-b3" dur="0.7s" begin="indefinite"><mpath href="#p-b3"/></animateMotion></circle>
+      <circle id="dot-b4" r="6" fill="var(--down)" opacity="0"><animateMotion id="am-b4" dur="0.7s" begin="indefinite"><mpath href="#p-b4"/></animateMotion></circle>
+      <!-- upstream (reversed) -->
+      <circle id="dot-u1" r="6" fill="var(--up)" opacity="0"><animateMotion id="am-u1" dur="0.7s" begin="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#p-b1"/></animateMotion></circle>
+      <circle id="dot-u2" r="6" fill="var(--up)" opacity="0"><animateMotion id="am-u2" dur="0.7s" begin="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#p-b2"/></animateMotion></circle>
+      <circle id="dot-u3" r="6" fill="var(--up)" opacity="0"><animateMotion id="am-u3" dur="0.7s" begin="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#p-b3"/></animateMotion></circle>
+      <circle id="dot-u4" r="6" fill="var(--up)" opacity="0"><animateMotion id="am-u4" dur="0.7s" begin="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#p-b4"/></animateMotion></circle>
+      <circle id="dot-uf" r="7" fill="var(--up)" opacity="0"><animateMotion id="am-uf" dur="0.9s" begin="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#p-feeder"/></animateMotion></circle>
+
+      <text x="540" y="320" text-anchor="middle" fill="var(--muted)" font-size="11">everything between OLT and ONT = ODN (Optical Distribution Network)</text>
+    </svg>
+  </div>
+  <div class="pon-controls">
+    <button class="btn primary" id="dsBtn">📤 Send a download (broadcast)</button>
+    <button class="btn" id="usBtn">📥 Send uploads (taking turns)</button>
+    <button class="btn" id="fixBtn" style="display:none">🔧 Splice the fiber</button>
+  </div>
+  <div class="pon-note" id="ponNote">Tip: click a home first to pick who the download is for.</div>
+  <div class="card" id="pon-info" aria-live="polite">
+    <h3>Click a component</h3>
+    <p>Select the OLT, splitter, or a home above to see what it really is — and why a backend tester cares about it.</p>
+  </div>
+
+  <details class="lesson" style="margin-top:22px">
+    <summary>GPON vs XGS-PON (the generations)</summary>
+    <div class="body">
+      <p><b>GPON</b> (Gigabit PON) is the workhorse generation: 2.5&nbsp;Gbps down / 1.25&nbsp;Gbps up, shared across the
+      splitter. <b>XGS-PON</b> is the current mainstream upgrade: <b>10&nbsp;Gbps symmetric</b> (X = 10 in Roman numerals,
+      G = gigabit, S = symmetric). They use different light colors, so both can run <b>on the same glass at the same
+      time</b> — that’s how providers upgrade neighborhoods without digging up streets. Vendors market this flexibility
+      as “any-PON.” Backend relevance: every device record carries its PON type, and provisioning logic and bandwidth
+      profiles differ by generation — a classic source of test permutations.</p>
+    </div>
+  </details>
+
+  <div class="lab">
+    <h3>🌈 Colors on one glass</h3>
+    <p class="prose" style="margin-top:0">How do downloads, uploads, GPON <i>and</i> XGS-PON all share one strand without
+    colliding? Different <b>wavelengths</b> — literally different colors of (invisible) light. Toggle them:</p>
+    <div class="wavechips" id="wavechips"></div>
+    <div class="glass" id="glassriver"></div>
+    <p class="diagram-note">All four can flow simultaneously, forever, and never interfere — like four radio stations on
+    different frequencies. This is why an operator can overlay XGS-PON on a GPON neighborhood without touching the glass.</p>
+  </div>
+</section>
+
+<section id="budget" class="reveal">
+  <div class="eyebrow">Field tool · real math techs use</div>
+  <h2>🔦 The Optical Budget Calculator</h2>
+  <div class="eli5">
+    <span class="who">🖍️ Like you’re five</span>
+    Your flashlight starts bright, but every kilometer of noodle, every splitter, and every smudgy connector
+    <b>steals a little light</b>. If too much gets stolen before it reaches the house, the mailbox can’t read the blinks.
+    This calculator is the “will there be enough light left?” game — and it’s the actual arithmetic behind every
+    fiber build plan and half of all “low light” trouble tickets.
+  </div>
+  <p class="prose">Received power at the ONT = transmit power − everything the path eats. Drag the sliders and watch the
+  light meter. Healthy ONTs want roughly <b>−8 to −24 dBm</b>; below ~−28 dBm the link dies.</p>
+  <div class="calc card">
+    <div>
+      <div class="ctl"><label>Fiber distance <output id="o-km">10 km</output></label>
+        <input type="range" id="r-km" min="0" max="40" value="10" step="1"></div>
+      <div class="ctl"><label>Splitter ratio <output id="o-split">1:32</output></label>
+        <input type="range" id="r-split" min="0" max="5" value="4" step="1"></div>
+      <div class="ctl"><label>Fusion splices <output id="o-splice">4</output></label>
+        <input type="range" id="r-splice" min="0" max="20" value="4" step="1"></div>
+      <div class="ctl"><label>Connectors <output id="o-conn">4</output></label>
+        <input type="range" id="r-conn" min="0" max="10" value="4" step="1"></div>
+      <div class="ctl check"><input type="checkbox" id="c-dirty"><label for="c-dirty" style="margin:0">🍕 One dirty connector (+2.5 dB — the classic field gremlin)</label></div>
+    </div>
+    <div class="meterwrap">
+      <div class="rxval" id="rxval"></div>
+      <div class="meter"><div class="needle" id="needle"></div></div>
+      <div class="meterscale"><span>0</span><span>−8</span><span>−16</span><span>−24</span><span>−28</span><span>−35 dBm</span></div>
+      <div class="verdict" id="verdict"></div>
+      <div class="ledger" id="ledger"></div>
+    </div>
+  </div>
+  <p class="diagram-note">Assumptions: OLT launches at +3 dBm · glass eats 0.35 dB/km · each splitter doubling eats ~3.5 dB
+  (1:32 ≈ 17.5 dB) · splice 0.1 dB · clean connector 0.5 dB. Simplified but true to life — real planners add a safety margin
+  on top. This is what “that splice ate our optical budget” means.</p>
+</section>
+
+<section id="networking" class="reveal">
+  <div class="eyebrow">Lesson 2 · Basic networking</div>
+  <h2>The vocabulary the packets travel on</h2>
+  <div class="eli5">
+    <span class="who">🖍️ Like you’re five</span>
+    Think of the network as a giant apartment building. <b>VLANs</b> are colored hallways — kids in the blue hallway can’t
+    wander into the red one. <b>DHCP</b> is the front desk handing you a name tag (“you are 192.168.1.7 today!”).
+    And <b>provisioning</b> is the building manager setting up your apartment before you move in: turning on the lights,
+    labeling your mailbox, choosing how fast your elevator goes.
+  </div>
+  <details class="lesson">
+    <summary>Layers, in 60 seconds</summary>
+    <div class="body">
+      <p>Networking is described in layers. <b>Layer 1</b> is the physical signal — our laser light. <b>Layer 2</b>
+      (Ethernet) moves <i>frames</i> between directly connected devices using MAC addresses — a PON is essentially a
+      giant shared Layer-2 segment. <b>Layer 3</b> (IP) routes <i>packets</i> across networks using IP addresses.
+      When an ONT “comes up,” that’s Layer 1/2; when the subscriber’s router gets an IP address, that’s Layer 3.
+      Operations-cloud health data spans all of them: light levels (L1), frame errors (L2), unreachable devices (L3).</p>
+    </div>
+  </details>
+  <details class="lesson">
+    <summary>VLANs, DHCP, and what “provisioning” actually means</summary>
+    <div class="body">
+      <p>A <span class="gt" data-t="VLAN">VLAN</span> is a virtual fence inside a shared network: traffic tagged VLAN&nbsp;100
+      can’t see traffic tagged VLAN&nbsp;200 even on the same wire. Providers use VLANs to separate services (internet vs
+      video vs voice). <span class="gt" data-t="DHCP">DHCP</span> is how a device asks “may I have an IP address?” —
+      when a new subscriber’s router can’t get one, that’s a top-tier support call.</p>
+      <p><b>Provisioning</b> is the industry word for “pushing the configuration that turns a service on”: which PON port,
+      which VLAN, what speed (<b>bandwidth profile</b>), what quality guarantees (<span class="gt" data-t="QoS">QoS</span>).
+      When the operations cloud “adds a service,” what physically happens is provisioning — config flowing down to the OLT and ONT.</p>
+    </div>
+  </details>
+  <details class="lesson">
+    <summary>Management protocols: how software talks to boxes</summary>
+    <div class="body">
+      <p>Three protocol families matter here. <b><span class="gt" data-t="NETCONF">NETCONF</span>/<span class="gt" data-t="YANG">YANG</span></b>
+      is the modern, structured way to configure network equipment — YANG defines the schema (“an interface has a name, a
+      VLAN, a speed…”), NETCONF is the transaction protocol that reads/writes it. The EMS speaks NETCONF southbound to the OLTs.
+      <b><span class="gt" data-t="TR-069">TR-069</span></b> (and its successor <span class="gt" data-t="USP">TR-369/USP</span>)
+      is how an <span class="gt" data-t="ACS">ACS</span> manages in-home devices — Wi-Fi settings, firmware, reboots — at
+      millions-of-devices scale. <b><span class="gt" data-t="SNMP">SNMP</span></b> is the legacy monitoring protocol older
+      devices still use. A backend tester meets all three as <i>southbound dependencies to mock or simulate</i>.</p>
+    </div>
+  </details>
+</section>
+
+<section id="stack" class="reveal">
+  <div class="eyebrow">The industry ladder</div>
+  <h2>The broadband stack, bottom to top</h2>
+  <p class="prose lede">Every fiber operator on Earth assembles this same four-tier ladder. Vendors differ, product names
+  differ — the shape never does. Learn the shape once and you can read any operator’s architecture diagram.</p>
+  <div class="eli5">
+    <span class="who">🖍️ Like you’re five</span>
+    The whole business is a <b>LEGO set</b> with four kinds of pieces: the box in your house 🏠, the big machine in the
+    neighborhood 🏢, a robot butler that configures them 🤖, and a control room in the sky ☁️ that watches everything.
+    Every internet company builds this exact set — they just buy the pieces from different toy stores.
+  </div>
+  <div class="tbl-wrap card" style="padding:6px 4px">
+    <table>
+      <tr><th>Tier</th><th>Generic name</th><th>What it is</th></tr>
+      <tr><td>🏠 In the home</td><td><b>CPE: ONT + smart gateway</b></td><td>Subscriber-side hardware: the ONT terminating the fiber and the Wi-Fi system (the <span class="gt" data-t="RG">residential gateway</span>). Emits rich telemetry about Wi-Fi health, connected devices, speeds.</td></tr>
+      <tr><td>🏢 Network edge</td><td><b>OLT chassis running a <span class="gt" data-t="NOS">NOS</span></b></td><td>The access platforms. Modern network operating systems are modular — in-service upgrades (no dropped subscribers), any PON generation, managed via NETCONF/YANG and streaming telemetry. Older gear runs legacy software with its own legacy manager.</td></tr>
+      <tr><td>🤖 Management</td><td><b><span class="gt" data-t="EMS">EMS</span> — element management system</b></td><td>Vendor software that manages the device fleet. Exposes a <b>northbound REST/JSON API</b> (what back offices and clouds call) and speaks NETCONF southbound to the boxes. This is where “add subscriber” becomes device config.</td></tr>
+      <tr><td>☁️ Cloud SaaS</td><td><b>Operator cloud suite</b></td><td>SaaS on one shared data platform, sliced by team: an <b>operations cloud</b> (network ops), a <b>support cloud</b> (customer service agents), often a <b>marketing cloud</b>. Same data lake, different lenses.</td></tr>
+    </table>
+  </div>
+  <p class="prose" style="margin-top:14px">Key mental model: <b>the operations cloud does not usually touch an OLT directly.</b>
+  It reads from and commands the management tier (the EMS) and telemetry pipelines. That indirection — cloud →
+  management → device — is exactly where a backend tester lives.</p>
+</section>
+
+<section id="opscloud" class="reveal">
+  <div class="eyebrow">The centerpiece · a reference architecture for any operator cloud</div>
+  <h2>An operations cloud backend, layer by layer</h2>
+  <div class="eli5">
+    <span class="who">🖍️ Like you’re five</span>
+    Picture a 6-floor building. The <b>basement</b> is the real network (boxes and light). Each floor up, the story gets
+    less about hardware and more about software, until the <b>top floor</b> is a person looking at a dashboard.
+    News travels <b>up</b> the stairs (“home #7 lost its light!”), and orders travel <b>down</b> (“turn on internet for
+    the new family on Oak Street!”). Press ▶ to watch a rumor climb the stairs.
+  </div>
+  <p class="prose">Click any block for its role — and how I’d attack it as a tester. (Generalized public-knowledge view;
+  internal names differ.)</p>
+  <div style="margin-bottom:12px"><button class="btn primary" id="flowUpBtn">▶ Watch telemetry climb the stack</button></div>
+  <div class="arch">
+    <div class="layers" id="layers">
+      <div class="layer"><div class="lname">Northbound · consumers</div>
+        <div class="blocks">
+          <button class="blk" data-a="ui">Operations UI</button>
+          <button class="blk" data-a="napi">Public REST APIs</button>
+          <button class="blk" data-a="ossbss">CSP OSS/BSS</button>
+        </div>
+      </div>
+      <div class="downflow">▲ query &amp; command &nbsp;·&nbsp; ▼ results &amp; events</div>
+      <div class="layer"><div class="lname">Backend services (system under test)</div>
+        <div class="blocks">
+          <button class="blk" data-a="sub">Subscriber service</button>
+          <button class="blk" data-a="prov">Provisioning / orchestration</button>
+          <button class="blk" data-a="health">Health &amp; alarm service</button>
+          <button class="blk" data-a="inv">Inventory &amp; topology</button>
+          <button class="blk" data-a="ml">Analytics / ML</button>
+        </div>
+      </div>
+      <div class="downflow">▲ events &amp; queries &nbsp;·&nbsp; ▼ writes</div>
+      <div class="layer"><div class="lname">Data platform</div>
+        <div class="blocks">
+          <button class="blk" data-a="bus">Message bus / streaming</button>
+          <button class="blk" data-a="lake">Data lake &amp; stores</button>
+        </div>
+      </div>
+      <div class="downflow">▲ normalized telemetry</div>
+      <div class="layer"><div class="lname">Ingestion edge</div>
+        <div class="blocks">
+          <button class="blk" data-a="coll">Collectors / connectors</button>
+          <button class="blk" data-a="acs">ACS (TR-069/USP)</button>
+        </div>
+      </div>
+      <div class="downflow">▲ telemetry, alarms, stats &nbsp;·&nbsp; ▼ NETCONF / API config</div>
+      <div class="layer"><div class="lname">Management tier (on-prem or hosted)</div>
+        <div class="blocks">
+          <button class="blk" data-a="smx">EMS</button>
+          <button class="blk" data-a="cms">Legacy EMS</button>
+        </div>
+      </div>
+      <div class="downflow">▲ device state &nbsp;·&nbsp; ▼ provisioning</div>
+      <div class="layer"><div class="lname">The network</div>
+        <div class="blocks">
+          <button class="blk" data-a="oltb">OLTs</button>
+          <button class="blk" data-a="ontb">ONTs &amp; gateways</button>
+        </div>
+      </div>
+    </div>
+    <div class="archpanel">
+      <div class="card" id="archinfo" aria-live="polite">
+        <h3>Select a block</h3>
+        <p>Each block explains its job in the pipeline, plus a <b>tester’s probe</b> — where I’d look for it to break.</p>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">⛈️ Bonus toy: the alarm storm</h3>
+  <p class="prose">One fiber cut doesn’t make one alarm — it makes <b>thousands</b> (every home behind the cut screams at
+  once). A huge job of the health backend is <b>correlation</b>: squishing the screaming into one actionable incident.
+  Try it:</p>
+  <div style="margin-bottom:6px"><button class="btn danger" id="stormBtn">✂️ Cut a feeder fiber</button>
+  <button class="btn" id="stormReset" style="display:none">↺ Reset</button></div>
+  <div class="storm">
+    <div class="card alarmq"><div class="qhead">Raw alarm queue · <span class="count" id="alarmCount">0</span> alarms</div><div id="alarmQ"></div></div>
+    <div class="card incident"><div class="qhead">After correlation</div>
+      <div class="incidentcard" id="incidentCard">
+        🚨 <b>1 incident:</b> Fiber cut on feeder — splitter&nbsp;SPL-0142<br>
+        <span style="font-size:.85rem; color:var(--muted)">32 subscribers impacted · root cause: loss-of-signal pattern matches upstream break · suggested action: dispatch to splitter cabinet (one truck roll, not thirty-two)</span>
+      </div>
+      <div id="incidentWait" style="color:var(--muted); font-size:.9rem">Waiting for alarms…</div>
+    </div>
+  </div>
+  <p class="diagram-note">Tester’s angle: I inject exactly this storm synthetically and assert the backend produces <b>one</b>
+  incident, not 4,000 — and that a “clear” arriving before its “raise” doesn’t confuse it.</p>
+</section>
+
+<section id="flow" class="reveal">
+  <div class="eyebrow">One operation, end to end</div>
+  <h2>A day in the life of “Add Subscriber”</h2>
+  <div class="eli5">
+    <span class="who">🖍️ Like you’re five</span>
+    A new family moves in and wants internet. Watch the wish travel: the shop 🏪 tells the cloud ☁️, the cloud tells the
+    robot butler 🤖, the butler tells the neighborhood machine 🏢, the machine wakes up the box in their house 📦, the
+    Wi-Fi gets its name 📶… and then the box <b>phones home</b> to say “I’m alive!” — and everyone celebrates. 🎉
+  </div>
+  <p class="prose">The single most important flow I test. Step through it — or press <b>▶ Play</b> and watch it run.</p>
+  <div class="actors" id="actors">
+    <span class="actor" data-n="BSS / CSR">🏪 BSS / CSR</span>
+    <span class="actor" data-n="Cloud BE">☁️ Cloud BE</span>
+    <span class="actor" data-n="EMS">🤖 EMS</span>
+    <span class="actor" data-n="OLT">🏢 OLT</span>
+    <span class="actor" data-n="ONT / RG">📦 ONT / RG</span>
+    <span class="actor" data-n="ACS">📶 ACS</span>
+    <span class="actor" data-n="Telemetry">📡 Telemetry</span>
+  </div>
+  <div class="card stepbox" id="stepbox" aria-live="polite"></div>
+  <div class="stepnav">
+    <button class="btn" id="prevBtn">← Back</button>
+    <button class="btn" id="nextBtn">Next →</button>
+    <button class="btn primary" id="playBtn">▶ Play</button>
+    <div class="dots" id="dots"></div>
+  </div>
+</section>
+
+<section id="tester" class="reveal">
+  <div class="eyebrow">The QA lens · applies at any broadband software shop</div>
+  <h2>What “testing the backend” means here</h2>
+  <div class="eli5">
+    <span class="who">🖍️ Like you’re five</span>
+    I don’t test by clicking buttons and hoping. I test like a mischievous gremlin with a clipboard: I <b>unplug things
+    mid-sentence</b>, send the same letter twice, mail gibberish, and shout 4,000 alarms at once — then check the cloud
+    stayed calm, told the truth, and never left a family half-connected.
+  </div>
+  <div class="tbl-wrap card" style="padding:6px 4px">
+    <table>
+      <tr><th>Test dimension</th><th>What it means in this system</th><th>Typical approach</th></tr>
+      <tr><td><b>API contract testing</b></td><td>Every operation (add subscriber, add service, get health) is a REST/JSON API. Verify schemas, status codes, auth, idempotency, pagination, error bodies.</td><td>pytest + requests / Postman, OpenAPI validation, contract tests</td></tr>
+      <tr><td><b>Data-pipeline validation</b></td><td>Telemetry in → dashboard out. Inject known device events; assert they land in the store, aggregate correctly, and surface within latency targets.</td><td>Event injection into the bus, DB/warehouse queries, latency SLO assertions</td></tr>
+      <tr><td><b>Southbound simulation</b></td><td>You can’t keep a city’s worth of OLTs in a lab. Simulators fake EMS/NOS/TR-069 endpoints so flows can run — and fail — on demand.</td><td>Device/ONT simulators, mocked NETCONF/ACS endpoints, fault injection</td></tr>
+      <tr><td><b>State-machine testing</b></td><td>A subscriber/service moves through states (created → provisioning → active → suspended). Verify every legal transition; reject the illegal ones.</td><td>API-driven state walks, DB state assertions, event-order checks</td></tr>
+      <tr><td><b>Failure &amp; recovery</b></td><td>EMS unreachable mid-provision? Duplicate event replayed? Partial write? The backend must retry, reconcile, or roll back — never strand a subscriber half-activated.</td><td>Chaos-style fault injection, replay tests, reconciliation checks</td></tr>
+      <tr><td><b>Scale &amp; performance</b></td><td>Millions of devices heartbeat continuously; alarm storms happen. Verify ingestion and correlation hold up under load.</td><td>Load generators, alarm-storm scenarios, backpressure checks</td></tr>
+    </table>
+  </div>
+  <p class="prose" style="margin-top:14px">The recurring theme: this backend’s hardest problems are <b>distributed-systems
+  problems</b> — eventual consistency between cloud state and device truth, retries and idempotency, correctness under
+  partial failure. Good tests here are less “click and check,” more <b>“inject, wait, reconcile, assert.”</b></p>
+</section>
+
+<section id="labgame" class="reveal">
+  <div class="eyebrow">Play the on-call engineer</div>
+  <h2>🧪 The Troubleshooting Lab</h2>
+  <div class="eli5">
+    <span class="who">🖍️ Like you’re five</span>
+    The candy stopped arriving at someone’s house! 🍬 Was it the mailbox? The little hose? The big hose? The station?
+    The robot butler? The control room? Read the clues like a detective and <b>tap the broken piece</b>.
+    This is literally what network troubleshooting is — following clues down the chain.
+  </div>
+  <p class="prose">Real trouble tickets, simplified. Each clue tells you <i>who is affected</i> and <i>what the systems see</i> —
+  together they point at exactly one component. Get it right first try for the point. This game is secretly the whole
+  architecture lesson: once you can play it, you know what every piece does.</p>
+
+  <div class="card casecard" id="labCase">
+    <div style="display:flex; align-items:baseline; gap:10px; flex-wrap:wrap">
+      <span class="ticket" id="labTicket">TICKET #001</span>
+      <span class="labscore" id="labScore">Case 1 / 8 · Score 0</span>
+    </div>
+    <h3 id="labTitle" style="margin-top:6px"></h3>
+    <div class="clues" id="labClues"></div>
+    <div class="chain" id="labChain" role="group" aria-label="Pick the broken component"></div>
+    <div class="labmsg" id="labMsg" aria-live="polite">Which piece is broken? Click it.</div>
+    <div style="display:flex; gap:10px; margin-top:8px">
+      <button class="btn primary" id="labNext" style="display:none">Next case →</button>
+      <button class="btn" id="labRestart" style="display:none">↺ Play again</button>
+    </div>
+    <div class="labdone" id="labDone"></div>
+  </div>
+</section>
+
+<section id="quiz" class="reveal">
+  <div class="eyebrow">Prove it</div>
+  <h2>Do you speak broadband now?</h2>
+  <p class="prose">Five questions. No pressure. (Okay, a little pressure.)</p>
+  <div class="quiz" id="quizBox"></div>
+  <div class="scorecard" id="scorecard" aria-live="polite"></div>
+</section>
+
+<section id="glossary" class="reveal">
+  <div class="eyebrow">Reference</div>
+  <h2>Jargon decoder</h2>
+  <p class="prose">Every acronym I’ve collected so far, with how it’s actually used in a sentence. Dotted-underlined terms
+  anywhere on this page hover to these definitions.</p>
+  <input class="gsearch" id="gsearch" type="search" placeholder="Search terms… e.g. ONT, VLAN, truck roll" aria-label="Search glossary">
+  <div class="gcats" id="gcats"></div>
+  <div class="ggrid" id="ggrid"></div>
+  <div class="gcount" id="gcount"></div>
+</section>
+
+<footer>
+  <p style="max-width:60ch; margin:0 auto .8em"><b>The Fiber Field Guide</b> · made by Akhilesh, a broadband backend test
+  engineer, while learning the trade — released for the whole networking community. <b>Share it, teach with it, remix it
+  freely</b> (CC&nbsp;BY&nbsp;4.0). It’s one self-contained HTML file with zero dependencies: save the page and it’s yours.</p>
+  <p style="margin:0">Public-knowledge content · vendor-neutral · not an official document of any vendor.
+  Spot an error? Tell a network engineer near you to fix it — that’s what the license is for. 🛠️</p>
+</footer>
+
+<div id="tip" role="tooltip"></div>
+<canvas id="confetti"></canvas>
+
+<script>
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- hero stars ---------- */
+const stars=document.getElementById('stars');
+for(let i=0;i<40;i++){
+  const s=document.createElement('i');
+  s.style.left=(i*2.5+((i*37)%7))+'%';
+  s.style.top=((i*53)%90)+'%';
+  s.style.animationDelay=((i*0.37)%3)+'s';
+  stars.appendChild(s);
+}
+
+/* ---------- scroll reveal ---------- */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in'); io.unobserve(e.target);}}),{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+/* ---------- glossary data ---------- */
+const G = [
+ ["PON","Passive Optical Network","fiber","A fiber network where one OLT port is shared by many homes through unpowered glass splitters.","“We’re an XGS-PON shop now; GPON is legacy for us.”"],
+ ["GPON","Gigabit PON","fiber","The 2.5 Gbps down / 1.25 Gbps up PON generation; still hugely deployed.","“That node is still GPON — check the bandwidth profile before you promise gig speeds.”"],
+ ["XGS-PON","10-Gigabit Symmetric PON","fiber","Current mainstream PON: 10 Gbps both directions, coexists with GPON on the same fiber.","“The XGS overlay lets us upgrade without touching the ODN.”"],
+ ["OLT","Optical Line Terminal","fiber","The provider-side box that lights up PONs; one chassis serves thousands of homes.","“The OLT rebooted — that’s why the whole neighborhood alarmed at once.”"],
+ ["ONT","Optical Network Terminal","fiber","The box at the subscriber’s home converting fiber light to Ethernet. Also called ONU.","“Is the ONT ranging? Check its light levels first.”"],
+ ["ONU","Optical Network Unit","fiber","Standards-speak synonym of ONT; ITU says ONU, everyone in the field says ONT.","“The spec says ONU, the tech says ONT — same box.”"],
+ ["ODN","Optical Distribution Network","fiber","All the passive glass between OLT and ONT: cables, splitters, splices, connectors.","“Loss is in the ODN somewhere — probably a dirty connector at the splitter.”"],
+ ["Splitter","Passive optical splitter","fiber","Unpowered device fanning one fiber to 32/64 homes; the reason FTTH is affordable.","“There’s a 1:32 splitter in that cabinet feeding the whole cul-de-sac.”"],
+ ["FTTH","Fiber To The Home","fiber","Fiber all the way to the residence (vs FTTN, to the node/cabinet). FTTx covers the family.","“Their FTTH build passes 40k homes this year.”"],
+ ["dBm","Decibel-milliwatts","fiber","Unit for optical power. ONT receive levels around −18 dBm are healthy; below ~−28 is trouble.","“RX is −27 dBm — borderline. Roll a truck before it drops off.”"],
+ ["Optical budget","Loss budget","fiber","Total signal loss a fiber link can tolerate between laser and receiver.","“That extra splice ate our optical budget.”"],
+ ["Wavelength","Light color / λ","fiber","Different data streams ride different light colors on the same fiber — how up/downstream and GPON/XGS coexist.","“XGS uses 1577 nm down, so it doesn’t clash with GPON.”"],
+ ["NOS","Network Operating System","access","The software running on an OLT. Modern NOSes upgrade in service (no dropped subscribers), speak any PON generation, and are managed via NETCONF/YANG.","“The new line cards run the modern NOS, so the EMS manages them natively.”"],
+ ["EMS","Element Management System","access","Vendor software managing the device fleet: REST/JSON northbound to back offices and clouds, NETCONF southbound to devices. The bridge between software and hardware.","“The cloud pushed the service to the EMS; the EMS provisioned the OLT.”"],
+ ["Legacy EMS","—","access","The older management platform still driving pre-modern equipment. Real networks run mixed estates for years.","“That market is still on the legacy EMS until the migration finishes.”"],
+ ["OLT chassis","—","access","The physical shelf-and-line-card access platforms at the network edge; one chassis serves thousands of homes.","“We added an XGS-PON card to the chassis in that hub.”"],
+ ["Smart gateway","—","access","Premium Wi-Fi residential gateways; a major telemetry source about in-home experience.","“Her gateway shows 60 clients — that’s why Wi-Fi feels slow, not the PON.”"],
+ ["Operations cloud","—","access","SaaS for the network-operations team: health, alarms, ML-predicted issues, subscriber/service operations. Vendors sell sibling clouds for support and marketing teams on the same data platform.","“The ops cloud flagged the ONT’s light trending down before the outage.”"],
+ ["VLAN","Virtual LAN","net","A tagged partition of a Layer-2 network; separates services/subscribers on shared infrastructure.","“Internet rides VLAN 100, voice on 200 — check the tag on that service.”"],
+ ["DHCP","Dynamic Host Configuration Protocol","net","How devices automatically get IP addresses. First thing to check when ‘internet is down.’","“The RG never got a DHCP lease — provisioning probably failed upstream.”"],
+ ["QoS","Quality of Service","net","Rules prioritizing some traffic (voice) over others (downloads).","“Voice gets a QoS priority queue so calls survive a saturated line.”"],
+ ["NETCONF","Network Configuration Protocol","net","Transactional protocol for configuring network devices; pairs with YANG models. EMS→OLT config uses it.","“The NETCONF commit failed, so the whole config rolled back — as designed.”"],
+ ["YANG","Yet Another Next Generation (data modeling)","net","Schema language describing what’s configurable on a device; NETCONF reads/writes YANG-modeled data.","“Check the YANG model — that leaf is read-only.”"],
+ ["TR-069","CPE WAN Management Protocol (CWMP)","net","Broadband Forum standard letting an ACS manage in-home devices remotely: config, firmware, diagnostics.","“Push the Wi-Fi password change via TR-069 — no truck roll needed.”"],
+ ["USP","User Services Platform (TR-369)","net","TR-069’s modern successor: faster, event-driven device management at scale.","“New RGs are USP-native, so telemetry streams instead of polling.”"],
+ ["ACS","Auto-Configuration Server","net","The server side of TR-069/USP that manages fleets of subscriber devices.","“The ACS queued a firmware campaign for 200k gateways overnight.”"],
+ ["SNMP","Simple Network Management Protocol","net","Legacy monitoring protocol: polled stats and ‘trap’ notifications.","“The old shelf only speaks SNMP, so the collector polls it.”"],
+ ["L2 / L3","Layer 2 / Layer 3","net","Ethernet-frame switching (MAC addresses) vs IP routing. PONs are big L2 domains; the internet is L3.","“It’s an L2 problem — frames are dropping before routing even happens.”"],
+ ["REST API","Representational State Transfer","cloud","HTTP+JSON interfaces between services; the surface most of my tests hit.","“Automate it against the REST API — the UI is just a client.”"],
+ ["Microservices","—","cloud","Architecture style: many small independently-deployed services (subscriber, provisioning, alarms…) talking over APIs/events.","“Which microservice owns service-activation state?”"],
+ ["Message bus","Streaming platform (Kafka-style)","cloud","The backbone carrying device events/telemetry between services; enables replay and decoupling.","“Replay yesterday’s topic to reproduce the alarm storm.”"],
+ ["Data lake","—","cloud","Central store of raw + normalized telemetry that analytics/ML and dashboards read from.","“The KPI report aggregates straight off the lake.”"],
+ ["Northbound / Southbound","—","cloud","Directional slang: northbound = toward consumers/UIs/OSS; southbound = toward devices.","“The EMS’s northbound API is REST; southbound it’s NETCONF.”"],
+ ["Idempotency","—","cloud","Property that repeating a request (retries!) doesn’t duplicate its effect. Critical for provisioning APIs.","“POST retried after a timeout — idempotency key stopped a double activation.”"],
+ ["Telemetry","—","cloud","Continuous device-emitted data: light levels, traffic counters, Wi-Fi stats, alarms.","“Streaming telemetry replaced 5-minute SNMP polls.”"],
+ ["OSS","Operations Support Systems","biz","A provider’s network-facing software estate: inventory, provisioning, assurance. An operations cloud is OSS-flavored SaaS.","“The OSS integration creates the subscriber before billing ever sees them.”"],
+ ["BSS","Business Support Systems","biz","The business-facing estate: ordering, billing, CRM. Orders start here and flow to OSS.","“Billing lives in the BSS; we just get the activation order.”"],
+ ["CSP","Communications Service Provider","biz","The customer: a telco/ISP/co-op/municipality operating the network.","“Each CSP tenant gets isolated data in the cloud.”"],
+ ["Subscriber","—","biz","The paying customer entity — the anchor record that services, devices, and locations hang off.","“Add subscriber first; services attach to it.”"],
+ ["Service","—","biz","A sellable, provisionable offering attached to a subscriber: internet tier, voice, video.","“She upgraded to the gig service — reprovision the bandwidth profile.”"],
+ ["Alarm","—","biz","A device/network-raised fault event. Real systems correlate thousands into few actionable incidents.","“One fiber cut, four thousand alarms, one root cause.”"],
+ ["KPI","Key Performance Indicator","biz","A tracked health/business metric: uptime, mean light level, churn, MTTR.","“Our top KPI this quarter is reducing repeat truck rolls.”"],
+ ["MTTR","Mean Time To Repair","biz","Average time from fault to fix; the ops metric predictive analytics tries to shrink.","“Proactive alerts cut MTTR by catching failures before calls come in.”"],
+ ["SLA","Service Level Agreement","biz","Contractual promise of service quality (uptime, latency), mostly for business customers.","“Business circuits have a 4-hour-repair SLA — those alarms jump the queue.”"],
+ ["Truck roll","—","biz","Industry slang: dispatching a technician physically. Expensive; avoiding needless ones is a core operations-cloud value prop.","“Remote diagnostics showed it was the customer’s router — truck roll avoided.”"],
+ ["CPE","Customer Premises Equipment","biz","Any provider gear at the customer site: ONT, gateway, set-top box.","“The CPE inventory syncs from the ACS nightly.”"],
+ ["RG","Residential Gateway","biz","The home router (often integrated with the ONT).","“Separate the RG from the ONT when debugging: light problem or Wi-Fi problem?”"],
+ ["NID","Network Interface Device","biz","The demarcation box on the outside wall where provider responsibility ends.","“Everything past the NID is the customer’s wiring.”"],
+];
+const CATS = {fiber:"Fiber & optics", access:"Access & management", net:"Networking", cloud:"Cloud & backend", biz:"Ops & business"};
+
+/* ---------- glossary render ---------- */
+const ggrid=document.getElementById('ggrid'), gcount=document.getElementById('gcount'),
+      gsearch=document.getElementById('gsearch'), gcats=document.getElementById('gcats');
+let cat='all';
+const catBtns=[['all','All'],...Object.entries(CATS)].map(([k,label])=>{
+  const b=document.createElement('button'); b.textContent=label; b.dataset.k=k;
+  b.onclick=()=>{cat=k; catBtns.forEach(x=>x.classList.toggle('on',x.dataset.k===k)); renderG();};
+  gcats.appendChild(b); return b;
+});
+catBtns[0].classList.add('on');
+function renderG(){
+  const q=gsearch.value.trim().toLowerCase();
+  const hits=G.filter(([t,f,c,d,u])=>(cat==='all'||c===cat)&&(!q||(t+' '+f+' '+d+' '+u).toLowerCase().includes(q)));
+  ggrid.innerHTML=hits.map(([t,f,c,d,u])=>`<div class="gcard">
+    <span class="tag" style="float:right">${CATS[c]}</span>
+    <div class="term">${t}</div>
+    ${f!=="—"?`<div class="full">${f}</div>`:''}
+    <div class="def">${d}</div>
+    <div class="use">${u}</div>
+  </div>`).join('');
+  gcount.textContent=`${hits.length} of ${G.length} terms`;
+}
+gsearch.addEventListener('input',renderG);
+renderG();
+
+/* ---------- tooltips ---------- */
+const tip=document.getElementById('tip');
+const gmap=Object.fromEntries(G.map(g=>[g[0].toLowerCase(),g]));
+document.querySelectorAll('.gt').forEach(el=>{
+  el.tabIndex=0;
+  const show=()=>{
+    const g=gmap[(el.dataset.t||'').toLowerCase()]; if(!g) return;
+    tip.innerHTML=`<b>${g[0]}</b>${g[1]!=="—"?` · ${g[1]}`:''}<br>${g[3]}`;
+    tip.style.display='block';
+    const r=el.getBoundingClientRect();
+    tip.style.left=Math.min(window.scrollX+r.left, window.scrollX+document.documentElement.clientWidth-340)+'px';
+    tip.style.top=(window.scrollY+r.bottom+8)+'px';
+  };
+  const hide=()=>tip.style.display='none';
+  el.addEventListener('mouseenter',show); el.addEventListener('mouseleave',hide);
+  el.addEventListener('focus',show); el.addEventListener('blur',hide);
+});
+
+/* ---------- LIGHT LAB ---------- */
+const charInput=document.getElementById('charInput'), bitreadout=document.getElementById('bitreadout'),
+      bitwire=document.getElementById('bitwire'), decoded=document.getElementById('decoded'),
+      fireBtn=document.getElementById('fireBtn');
+function bitsOf(ch){ return ch.charCodeAt(0).toString(2).padStart(8,'0'); }
+charInput.addEventListener('input',()=>{
+  const ch=(charInput.value||'A').toUpperCase().slice(0,1);
+  bitreadout.innerHTML=`${ch} = <b>${bitsOf(ch)}</b>`;
+  decoded.textContent='';
+});
+fireBtn.addEventListener('click',()=>{
+  const ch=(charInput.value||'A').toUpperCase().slice(0,1);
+  const bits=bitsOf(ch);
+  bitreadout.innerHTML=`${ch} = <b>${bits}</b>`;
+  decoded.textContent='';
+  bitwire.querySelectorAll('.bit').forEach(b=>b.remove());
+  bits.split('').forEach((bit,i)=>{
+    const d=document.createElement('span');
+    d.className='bit '+(bit==='1'?'on':'off');
+    d.style.animationDelay=(RM?0:i*0.22)+'s';
+    bitwire.appendChild(d);
+  });
+  const total=RM?300:(8*220+2200);
+  setTimeout(()=>{ decoded.textContent=`👁️ Photodiode decoded: ${bits} → “${ch}” — your letter arrived as light!`; }, Math.min(total,3900));
+});
+
+/* ---------- PON PLAYGROUND ---------- */
+const PON_INFO={
+ olt:["OLT — the neighborhood’s engine room","An Optical Line Terminal (a chassis running a modern NOS) sits in a central office or cabinet and drives many PONs at once — one chassis can serve thousands of homes. It schedules every ONT’s upstream time slots, enforces bandwidth profiles, and streams telemetry north. <b>Tester’s angle:</b> in the cloud backend the OLT appears as inventory records, telemetry sources, and the far end of provisioning calls — simulated in most test environments."],
+ split:["Passive splitter — the cost trick","A sealed glass component that splits one fiber’s light 32 or 64 ways. No power, no software, nothing to reboot — that’s why the ‘P’ in PON matters: the outside plant is nearly maintenance-free. <b>Tester’s angle:</b> invisible to software except as topology data; splitter assignments show up in inventory/topology services."],
+ ont:["ONT — where light becomes Ethernet","The Optical Network Terminal at the home converts fiber light to an Ethernet jack, enforces the subscriber’s speed, encrypts/decrypts the shared PON traffic, and reports its own health. ‘Ranging’ is an ONT joining a PON. <b>Tester’s angle:</b> the subject of ‘add subscriber’ — its serial number gets linked to a subscriber record, and its telemetry proves activation actually worked."],
+ rg:["ONT + Residential Gateway","Often the ONT is built into (or paired with) a Wi-Fi router — a “smart gateway.” It’s managed separately from the PON side, via ACS protocols (TR-069/USP), and emits the in-home telemetry (Wi-Fi health, connected devices) that support and operations clouds both consume. <b>Tester’s angle:</b> a second southbound world (ACS) to simulate, plus rich telemetry schemas to validate."],
+};
+const ponInfo=document.getElementById('pon-info'), ponNote=document.getElementById('ponNote');
+let target=0, cut=false, busy=false;
+const homes=[...document.querySelectorAll('.node.home')];
+function selectHome(i){
+  target=i;
+  homes.forEach((h,j)=>h.classList.toggle('target',j===i));
+  ponNote.textContent=`Download will be addressed to home #${['1','2','3','32'][i]}. Everyone hears it — only they can open it.`;
+}
+document.querySelectorAll('.pon-wrap .node').forEach(n=>{
+  const act=()=>{
+    document.querySelectorAll('.pon-wrap .node').forEach(x=>x.classList.remove('sel'));
+    n.classList.add('sel');
+    const [h,b]=PON_INFO[n.dataset.k];
+    ponInfo.innerHTML=`<h3>${h}</h3><p>${b}</p>`;
+    if(n.dataset.h!==undefined) selectHome(+n.dataset.h);
+  };
+  n.addEventListener('click',act);
+  n.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();act();}});
+});
+selectHome(0);
+function pulse(id,dur){
+  return new Promise(res=>{
+    const dot=document.getElementById('dot-'+id), am=document.getElementById('am-'+id);
+    dot.setAttribute('opacity','1');
+    am.beginElement();
+    setTimeout(()=>{dot.setAttribute('opacity','0'); res();}, dur);
+  });
+}
+function emote(i,sym){
+  const e=homes[i].querySelector('.emote');
+  e.textContent=sym; e.classList.remove('pop'); void e.getBoundingClientRect(); e.classList.add('pop');
+}
+const dsBtn=document.getElementById('dsBtn'), usBtn=document.getElementById('usBtn'),
+      fixBtn=document.getElementById('fixBtn'), scissors=document.getElementById('scissors');
+async function downstream(){
+  if(busy) return; busy=true; dsBtn.disabled=usBtn.disabled=true;
+  if(cut){
+    ponNote.textContent='💥 The light hits the cut and dies. No homes reached — and 32 alarms are about to hit the cloud. Splice the fiber to fix it.';
+    await pulse('feeder',450);
+    busy=false; dsBtn.disabled=usBtn.disabled=false; return;
+  }
+  ponNote.textContent='The OLT broadcasts one signal down the feeder…';
+  await pulse('feeder',900);
+  ponNote.textContent='…the dumb glass splitter copies it to every branch at once…';
+  await Promise.all([pulse('b1',700),pulse('b2',700),pulse('b3',700),pulse('b4',700)]);
+  homes.forEach((h,i)=>emote(i, i===target?'🎁':'🔒'));
+  ponNote.textContent=`Every home received it, but it’s encrypted — only home #${['1','2','3','32'][target]} has the key. 🎁`;
+  busy=false; dsBtn.disabled=usBtn.disabled=false;
+}
+async function upstream(){
+  if(busy) return; busy=true; dsBtn.disabled=usBtn.disabled=true;
+  if(cut){ ponNote.textContent='💥 Nothing gets past a cut fiber upstream either. Splice it first!'; busy=false; dsBtn.disabled=usBtn.disabled=false; return; }
+  ponNote.textContent='Upstream, homes must take turns — the OLT assigns each a time slot…';
+  const ups=['u1','u2','u3','u4'];
+  for(let i=0;i<4;i++){
+    emote(i,'🗣️');
+    await pulse(ups[i],700);
+    await pulse('uf',900);
+    ponNote.textContent=`Home #${['1','2','3','32'][i]} spoke in its slot… ${i<3?'next!':'all done — zero collisions.'}`;
+  }
+  busy=false; dsBtn.disabled=usBtn.disabled=false;
+}
+dsBtn.addEventListener('click',downstream);
+usBtn.addEventListener('click',upstream);
+function setCut(v){
+  cut=v;
+  document.getElementById('w-feeder').classList.toggle('cut',v);
+  scissors.textContent=v?'💥':'✂️';
+  fixBtn.style.display=v?'':'none';
+  if(v) ponNote.textContent='✂️ You cut the feeder! 32 homes just went dark at once. Try sending a download… then check the alarm storm toy below.';
+  else ponNote.textContent='🔧 Spliced! Light flows again. (In real life this is a truck roll and a fusion splicer.)';
+}
+scissors.addEventListener('click',()=>setCut(!cut));
+scissors.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setCut(!cut);}});
+fixBtn.addEventListener('click',()=>setCut(false));
+
+/* ---------- WAVELENGTH RIVER ---------- */
+const WAVES=[
+ {name:"GPON down · 1490 nm", c:"#3FD3F2", dir:"d", top:22},
+ {name:"GPON up · 1310 nm",  c:"#F2A94A", dir:"u", top:54},
+ {name:"XGS down · 1577 nm", c:"#7C8CF8", dir:"d", top:86},
+ {name:"XGS up · 1270 nm",   c:"#F07A7A", dir:"u", top:118},
+];
+const glassriver=document.getElementById('glassriver'), wavechips=document.getElementById('wavechips');
+WAVES.forEach((w,i)=>{
+  const s=document.createElement('div');
+  s.className='stream '+(RM?'':(w.dir==='d'?'flow-d':'flow-u'));
+  s.style.top=w.top+'px';
+  s.style.background=`repeating-linear-gradient(90deg, ${w.c} 0 18px, transparent 18px 36px)`;
+  const l=document.createElement('span'); l.className='glabel'; l.style.top=w.top+'px';
+  l.textContent=w.name+(w.dir==='d'?'  →':'  ←');
+  glassriver.appendChild(s); glassriver.appendChild(l);
+  const chip=document.createElement('button'); chip.className='wavechip on';
+  chip.style.borderColor=w.c; chip.style.color=w.c; chip.textContent=w.name;
+  chip.onclick=()=>{ chip.classList.toggle('on'); s.classList.toggle('off'); l.style.opacity=chip.classList.contains('on')?'':'.25';
+    chip.style.color=chip.classList.contains('on')?w.c:''; };
+  wavechips.appendChild(chip);
+});
+
+/* ---------- OPTICAL BUDGET CALCULATOR ---------- */
+const SPLITS=[[1,0],[4,7],[8,10.5],[16,14],[32,17.5],[64,21]]; // [ratio, dB loss]
+const TX=3, PERKM=0.35, SPLICE=0.1, CONN=0.5, DIRTY=2.5;
+const els=Object.fromEntries(['r-km','r-split','r-splice','r-conn','c-dirty','o-km','o-split','o-splice','o-conn','rxval','needle','verdict','ledger'].map(id=>[id,document.getElementById(id)]));
+function calc(){
+  const km=+els['r-km'].value, si=+els['r-split'].value,
+        sp=+els['r-splice'].value, cn=+els['r-conn'].value, dirty=els['c-dirty'].checked;
+  const [ratio,sloss]=SPLITS[si];
+  const fiber=km*PERKM, splices=sp*SPLICE, conns=cn*CONN, extra=dirty?DIRTY:0;
+  const rx=TX - fiber - sloss - splices - conns - extra;
+  els['o-km'].textContent=km+' km';
+  els['o-split'].textContent=ratio===1?'no splitter':'1:'+ratio;
+  els['o-splice'].textContent=sp; els['o-conn'].textContent=cn;
+  els['rxval'].textContent=(rx<0?'−':'+')+Math.abs(rx).toFixed(1)+' dBm';
+  els['needle'].style.left=Math.min(100,Math.max(0,(-rx/35)*100))+'%';
+  const v=els['verdict'];
+  if(rx>-8){ v.className='verdict warnv'; v.textContent='🔥 Too hot! The photodiode can be overloaded when the path is too short/clean. Real ONTs want some attenuation.'; }
+  else if(rx>=-24){ v.className='verdict ok'; v.textContent='✅ Healthy link. This ONT ranges happily and stays that way.'; }
+  else if(rx>=-28){ v.className='verdict warnv'; v.textContent='⚠️ Borderline. It works today — and becomes a trouble ticket the first cold snap or bent patch cord. Operations clouds flag exactly these.'; }
+  else{ v.className='verdict dead'; v.textContent='❌ Dead. Not enough light survives the trip — the ONT can’t range. Shorten the path, reduce splits, or clean that connector.'; }
+  els['ledger'].innerHTML=
+    `<div><span>OLT launch power</span><span>+${TX.toFixed(1)} dB</span></div>`+
+    `<div><span>Fiber ${km} km × 0.35</span><span>−${fiber.toFixed(1)} dB</span></div>`+
+    `<div><span>Splitter ${ratio===1?'—':'1:'+ratio}</span><span>−${sloss.toFixed(1)} dB</span></div>`+
+    `<div><span>Splices ${sp} × 0.1</span><span>−${splices.toFixed(1)} dB</span></div>`+
+    `<div><span>Connectors ${cn} × 0.5</span><span>−${conns.toFixed(1)} dB</span></div>`+
+    (dirty?`<div><span>🍕 dirty connector</span><span>−2.5 dB</span></div>`:'')+
+    `<div style="border-top:1px solid var(--line); margin-top:4px; padding-top:4px"><span><b>At the ONT</b></span><span><b>${rx.toFixed(1)} dBm</b></span></div>`;
+}
+['r-km','r-split','r-splice','r-conn'].forEach(id=>els[id].addEventListener('input',calc));
+els['c-dirty'].addEventListener('change',calc);
+calc();
+
+/* ---------- ALARM STORM ---------- */
+const stormBtn=document.getElementById('stormBtn'), stormReset=document.getElementById('stormReset'),
+      alarmQ=document.getElementById('alarmQ'), alarmCount=document.getElementById('alarmCount'),
+      incidentCard=document.getElementById('incidentCard'), incidentWait=document.getElementById('incidentWait');
+const ALARM_KINDS=['LOS','LOS','LOS','dying-gasp','LOS','link-down','LOS','LOS'];
+let stormTimer=null;
+stormBtn.addEventListener('click',()=>{
+  stormBtn.disabled=true; stormReset.style.display='';
+  let n=0;
+  incidentWait.textContent='Correlating… (matching 32 loss-of-signal alarms to one upstream break)';
+  stormTimer=setInterval(()=>{
+    n++;
+    const chip=document.createElement('span');
+    chip.className='alarmchip';
+    chip.textContent=`ONT-${String(n).padStart(2,'0')} ${ALARM_KINDS[n%ALARM_KINDS.length]}`;
+    if(RM) chip.style.animation='none';
+    alarmQ.appendChild(chip);
+    alarmCount.textContent=n;
+    if(n>=32){
+      clearInterval(stormTimer);
+      setTimeout(()=>{ incidentWait.style.display='none'; incidentCard.classList.add('show'); }, RM?100:700);
+    }
+  }, RM?10:70);
+});
+stormReset.addEventListener('click',()=>{
+  clearInterval(stormTimer);
+  alarmQ.innerHTML=''; alarmCount.textContent='0';
+  incidentCard.classList.remove('show'); incidentWait.style.display=''; incidentWait.textContent='Waiting for alarms…';
+  stormBtn.disabled=false; stormReset.style.display='none';
+});
+
+/* ---------- architecture panel + flow-up ---------- */
+const ARCH={
+ ui:["Operations UI","The dashboards the NOC and ops teams live in: network health maps, alarm queues, subscriber search, ML insights. It’s ‘just’ a client of the backend APIs — which is why backend testing covers most real risk.","UI and API must agree. Classic bug class: API returns correct data, UI aggregation shows stale/wrong rollups — or vice versa. I test the API as the source of truth."],
+ napi:["Public / partner REST APIs","Documented northbound APIs letting CSPs script operations and pull data into their own systems.","Contract stability is everything: versioning, backward compatibility, auth scopes, rate limits, consistent error schemas. Breaking a partner API breaks someone’s business."],
+ ossbss:["CSP OSS/BSS integration","The provider’s ordering/billing systems push orders in (add subscriber, change service) and consume status back.","Test malformed orders, duplicate order IDs, out-of-order events, and slow consumers. Integration edges are where distributed-systems bugs concentrate."],
+ sub:["Subscriber service","Owns the subscriber entity: identity, location, associated devices and services. The anchor record everything else references.","CRUD + uniqueness + lifecycle states. Race: two simultaneous creates for the same subscriber. Referential integrity when a subscriber with active services is deleted."],
+ prov:["Provisioning / orchestration","Translates intent (‘give her 1-gig internet’) into an ordered sequence of southbound calls (EMS, ACS), tracking a state machine with retries and rollback.","The richest test surface: every step can fail. Timeout mid-sequence — does it retry idempotently, roll back cleanly, or strand a half-provisioned subscriber? Verify reconciliation after simulated EMS outages."],
+ health:["Health & alarm service","Consumes device events, maintains current health state, correlates raw alarms into actionable incidents, feeds thresholds/notifications.","Inject synthetic alarm storms (fiber-cut = thousands of correlated alarms): correct dedup/correlation? Flapping devices? Clear-alarm ordering (clear arriving before raise)?"],
+ inv:["Inventory & topology","Knows what exists and how it connects: OLTs, PON ports, splitters, ONTs, and which subscriber hangs off which port.","Sync correctness: device swapped/re-homed in the EMS — does cloud inventory converge? Orphan records, duplicate serials, topology cycles."],
+ ml:["Analytics / ML","Learns patterns from the lake to predict service-impacting events (e.g., an ONT’s light trending down) and score subscriber experience.","Deterministic pipeline around a nondeterministic core: validate feature data in, prediction schema out, and that model updates don’t silently change API contracts."],
+ bus:["Message bus / streaming","Kafka-style backbone: telemetry, alarms, and domain events flow as ordered, replayable topics decoupling producers from consumers.","Replay a topic — do consumers dedupe (exactly-once effects)? Consumer lag under load, poison-pill messages, schema evolution of events."],
+ lake:["Data lake & stores","The persistence layer: raw telemetry, normalized time series, entity databases serving dashboards, reports, ML.","Data-quality assertions: completeness (every injected event lands), aggregation math, retention, tenant isolation (CSP A must never query CSP B’s data)."],
+ coll:["Collectors / connectors","Edge components that pull/receive from management systems and devices — EMS APIs, streaming telemetry, SNMP polling for legacy gear — and normalize into common event schemas.","Feed them garbage: truncated payloads, unknown device models, clock-skewed timestamps, burst reconnects after a WAN outage (thundering-herd backfill)."],
+ acs:["ACS (TR-069/USP)","The auto-configuration server managing the in-home fleet: Wi-Fi settings, firmware campaigns, remote diagnostics on smart-gateway fleets.","Fleet-scale edge cases: device offline during config push (queued? expired?), firmware rollback paths, telemetry gaps vs. real outages."],
+ smx:["EMS — the management bridge","The element management system. Northbound: REST/JSON API the cloud calls. Southbound: NETCONF/YANG transactions to OLTs. Runs as a microservices cluster, on-prem or hosted.","The most important dependency to simulate. Verify cloud behavior across the EMS’s full response matrix: success, validation errors, timeouts, partial success, version skew between EMS releases."],
+ cms:["Legacy EMS (legacy path)","Manages older equipment. Real deployments are mixed estates, so the backend must handle both management flavors.","Feature-parity matrix testing: the same cloud operation across modern-EMS vs legacy-EMS paths — same user-facing result, different plumbing."],
+ oltb:["OLTs","The physical network edge. Source of PON telemetry and target of provisioning transactions. Modern NOS design means upgrades without dropping subscribers.","In cloud tests these are simulated. Key scenarios: OLT unreachable, config transaction rollback, telemetry silence vs device-down disambiguation."],
+ ontb:["ONTs & smart gateways","Millions of endpoints: ONTs terminating fiber, gateways running home Wi-Fi. Each is inventory, a provisioning target, and a telemetry firehose.","Scale is the test problem: device simulators generating realistic fleets, serial-number collisions, factory-reset/replacement flows (same subscriber, new hardware)."],
+};
+const archinfo=document.getElementById('archinfo');
+document.querySelectorAll('.blk').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.blk').forEach(x=>x.classList.remove('sel'));
+    b.classList.add('sel');
+    const [h,body,probe]=ARCH[b.dataset.a];
+    archinfo.innerHTML=`<h3>${h}</h3><p>${body}</p><div class="probe"><b>Tester’s probe:</b> ${probe}</div>`;
+  });
+});
+const FLOW_MSGS=[
+ '📦 An ONT notices its light level dropped…',
+ '🤖 The EMS picks it up via streaming telemetry…',
+ '🔌 A collector normalizes it into a standard event…',
+ '🚌 It rides the message bus into the data platform…',
+ '🩺 The health service updates state — maybe raises an alarm…',
+ '🖥️ …and the NOC sees it on a dashboard. Photon to pixel.',
+];
+document.getElementById('flowUpBtn').addEventListener('click',async e=>{
+  const btn=e.currentTarget; btn.disabled=true;
+  const layers=[...document.querySelectorAll('#layers .layer')].reverse();
+  const old=archinfo.innerHTML;
+  for(let i=0;i<layers.length;i++){
+    layers.forEach(l=>l.classList.remove('glow'));
+    layers[i].classList.add('glow');
+    archinfo.innerHTML=`<h3>Telemetry climbing…</h3><p style="font-size:1.05rem">${FLOW_MSGS[i]}</p>`;
+    await new Promise(r=>setTimeout(r,RM?150:1100));
+  }
+  layers.forEach(l=>l.classList.remove('glow'));
+  archinfo.innerHTML=old;
+  btn.disabled=false;
+});
+
+/* ---------- add-subscriber stepper ---------- */
+const STEPS=[
+ ["Order arrives","BSS / CSR","🏪",
+  "A customer signs up. The CSP’s BSS (or a service rep in the UI) submits an activation order to the cloud backend’s REST API: subscriber details, service tier, location, and usually the ONT serial number the field tech will install.",
+  "Schema validation, auth, and the duplicate-order case: the same order POSTed twice must not create two subscribers."],
+ ["Backend validates & records","Cloud BE","☁️",
+  "The subscriber service validates the payload (does the location exist? is the service tier offered there? serial number well-formed?), persists the subscriber record, and emits a <code>subscriber.created</code> event on the message bus.",
+  "Negative testing: every invalid field returns a specific, documented error. DB state after failure = no partial record."],
+ ["Orchestration plans the work","Cloud BE","🗺️",
+  "The provisioning service expands the intent into an ordered plan: configure the OLT’s PON port, authorize the ONT, apply the bandwidth profile and VLANs, then configure the home gateway. A state machine tracks each step.",
+  "Inspect the state machine via API/DB: is the subscriber now in <code>provisioning</code>? Kill the service mid-plan — does it resume idempotently on restart?"],
+ ["Southbound call to the EMS","EMS","🤖",
+  "The backend calls the EMS’s northbound REST API: “activate this service on this ONT.” The EMS validates against its own model of the network and opens a NETCONF transaction toward the right OLT.",
+  "Simulate the EMS’s full response matrix: 200, validation error, timeout, 500 mid-transaction. Verify retry policy and that retries carry idempotency keys."],
+ ["OLT authorizes the ONT","OLT","🏢",
+  "The OLT commits the config: the ONT’s serial number is now authorized on its PON, VLANs are mapped, the bandwidth profile enforced. When the tech plugs the ONT in, it ‘ranges’ onto the PON and comes online.",
+  "An OLT/ONT simulator plays this part in test. Scenario matrix: ONT already online vs installed later, wrong serial plugged in, ONT on the wrong PON port."],
+ ["Home Wi-Fi gets configured","ACS","📶",
+  "The smart gateway phones home to the ACS (TR-069/USP), which pushes subscriber-specific config: SSID, credentials, mesh setup, parental-control defaults.",
+  "Device-offline-during-push behavior: is config queued and applied on next contact? Does cloud state show ‘pending’ (truthful) vs ‘active’ (lying)?"],
+ ["Telemetry confirms reality","Telemetry","📡",
+  "The ONT and gateway start streaming: light levels, negotiated speeds, Wi-Fi health. Collectors normalize it onto the bus; the health service marks the service <b>active and healthy</b>. Cloud state now matches device truth.",
+  "The end-to-end assertion: inject the full flow, then verify within an SLO window that health, inventory, and subscriber APIs all converge to ‘active’. Closing this loop is the single best system test."],
+ ["Everyone sees it 🎉","BSS / CSR","🎉",
+  "Status flows north: the BSS gets an activation-complete callback so billing can start; the operations UI shows a green subscriber; the support cloud can pull up her experience if she calls in. A family has Wi-Fi.",
+  "Callback delivery guarantees (retries if BSS is down?), and cross-view consistency: the same subscriber must look identical through every northbound surface."],
+];
+let step=0, playing=null;
+const stepbox=document.getElementById('stepbox'), dots=document.getElementById('dots'),
+      prevBtn=document.getElementById('prevBtn'), nextBtn=document.getElementById('nextBtn'),
+      playBtn=document.getElementById('playBtn'),
+      actors=[...document.querySelectorAll('.actor')];
+dots.innerHTML=STEPS.map(()=>'<i></i>').join('');
+function renderStep(){
+  const [title,actor,emoji,body,test]=STEPS[step];
+  stepbox.innerHTML=`<span class="scene">${emoji}</span><div class="stepnum">STEP ${step+1} / ${STEPS.length}</div>
+    <h3>${title}</h3><p style="max-width:66ch">${body}</p>
+    <div class="testnote"><b>What I test here:</b> ${test}</div>`;
+  actors.forEach(a=>a.classList.toggle('on',a.dataset.n===actor));
+  [...dots.children].forEach((d,i)=>d.classList.toggle('on',i<=step));
+  prevBtn.disabled=step===0; nextBtn.disabled=step===STEPS.length-1;
+  if(step===STEPS.length-1) confetti();
+}
+function stopPlay(){ if(playing){clearInterval(playing); playing=null; playBtn.textContent='▶ Play';} }
+prevBtn.onclick=()=>{stopPlay(); if(step>0){step--;renderStep();}};
+nextBtn.onclick=()=>{stopPlay(); if(step<STEPS.length-1){step++;renderStep();}};
+playBtn.onclick=()=>{
+  if(playing){stopPlay(); return;}
+  if(step===STEPS.length-1){step=0; renderStep();}
+  playBtn.textContent='⏸ Pause';
+  playing=setInterval(()=>{
+    if(step<STEPS.length-1){step++; renderStep();}
+    else stopPlay();
+  }, RM?1200:3400);
+};
+renderStep();
+
+/* ---------- confetti ---------- */
+const cv=document.getElementById('confetti'), cx=cv.getContext('2d');
+let confettiRan=false;
+function confetti(){
+  if(RM||confettiRan) return; confettiRan=true;
+  cv.width=innerWidth; cv.height=innerHeight;
+  const cols=['#3FD3F2','#F2A94A','#4CC97E','#F07A7A','#E5B84C'];
+  const ps=Array.from({length:120},(_,i)=>({
+    x:Math.random()*cv.width, y:-20-Math.random()*cv.height*0.5,
+    vy:2+Math.random()*3, vx:(Math.random()-.5)*2,
+    s:5+Math.random()*6, c:cols[i%cols.length], r:Math.random()*6.28, vr:(Math.random()-.5)*.2
+  }));
+  let t=0;
+  (function tick(){
+    cx.clearRect(0,0,cv.width,cv.height); t++;
+    ps.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.r+=p.vr;
+      cx.save(); cx.translate(p.x,p.y); cx.rotate(p.r);
+      cx.fillStyle=p.c; cx.fillRect(-p.s/2,-p.s/2,p.s,p.s); cx.restore();
+    });
+    if(t<260) requestAnimationFrame(tick); else cx.clearRect(0,0,cv.width,cv.height);
+  })();
+  setTimeout(()=>{confettiRan=false;}, 8000);
+}
+
+/* ---------- TROUBLESHOOTING LAB GAME ---------- */
+const COMPS=[
+ ["wifi","📶 Home Wi-Fi","radio waves in the house"],
+ ["ont","📦 ONT","light → Ethernet box"],
+ ["drop","🧵 Drop fiber","one home’s glass"],
+ ["feeder","🛣️ Feeder fiber","shared glass + splitter"],
+ ["olt","🏢 OLT","neighborhood machine"],
+ ["smx","🤖 EMS","management bridge"],
+ ["cloud","☁️ Cloud BE","my system under test"],
+];
+const CASES=[
+ {t:"“My internet is slow, but only in the back bedroom.”",
+  clues:["👤 One home, one room","✅ Speed test at the router: full gig","✅ ONT light level: perfect","✅ Cloud: subscriber healthy"],
+  a:"wifi",
+  why:"Everything up the chain is provably fine — the gig arrives at the router. Distance/walls kill the last 10 meters of radio. Fix: mesh unit, not a truck roll. Operator clouds show exactly this per-room Wi-Fi telemetry so support can tell the customer confidently."},
+ {t:"“No internet!” — and 31 of the neighbors say the same thing, all at 3:07pm.",
+  clues:["👥 All 32 homes on one splitter","🚨 OLT reports loss-of-signal on that PON port","✅ Other PON ports on the same OLT: fine"],
+  a:"feeder",
+  why:"Everyone behind one splitter dying at the same instant = the shared glass upstream of them. (A backhoe, usually.) One incident, one truck roll — this is the alarm-correlation case from the storm toy."},
+ {t:"“No internet” from one home; neighbors are streaming happily.",
+  clues:["👤 One home only","🚨 That ONT: light level −29 dBm (very low)","✅ Neighbors on same splitter: −18 dBm"],
+  a:"drop",
+  why:"Only their glass is sick, and the low received power says the signal is physically fading — a pinched or damaged drop cable, or a dirty connector. The shared plant is fine or everyone would scream."},
+ {t:"“The lights on the box are green but nothing gets online.” Laptops say ‘no IP address.’",
+  clues:["👤 One home","✅ ONT online, light perfect","🚨 Devices never get a DHCP lease","✅ Cloud: service shows active"],
+  a:"ont",
+  why:"Tricky one! Light is fine, Wi-Fi is visible, but no DHCP means frames aren’t making it through the box that bridges light to Ethernet — a misprovisioned VLAN or a hung ONT. First move: remote reboot/re-provision via the cloud, not a truck."},
+ {t:"Thousands of homes across 40 different splitters went dark at once. The building at the hub site lost power.",
+  clues:["👥 Many PONs at once","🚨 Every PON on one chassis alarming","✅ Other hub sites: fine"],
+  a:"olt",
+  why:"When the blast radius is ‘every splitter served by one machine,’ the machine is the common ancestor — the OLT chassis itself (power, in this story). Blast radius tells you altitude in the chain."},
+ {t:"Customers are fine… but every dashboard shows all devices as ‘unknown’ since 2pm, and new activations time out.",
+  clues:["👥 No subscriber complaints at all","🚨 Cloud: all device state stale","🚨 Provisioning calls: timeouts","✅ Traffic still flowing in the field"],
+  a:"smx",
+  why:"The network is healthy — people are streaming! — but the cloud has gone blind and mute. The bridge between them is down: the EMS. Classic lesson: ‘dashboard dark’ ≠ ‘network down.’ My tests simulate exactly this outage."},
+ {t:"A new subscriber was activated an hour ago. Device is online and streaming — but the cloud still shows ‘provisioning…’ forever.",
+  clues:["👤 One new subscriber","✅ EMS: activation succeeded","✅ Device: online, telemetry flowing","🚨 Cloud state machine: stuck"],
+  a:"cloud",
+  why:"Every layer below did its job — the truth is ‘active’ but my backend never consumed the confirmation event. A stuck state machine / lost event. This bug is invisible to the customer and poisonous to operations. Prime test target."},
+ {t:"After a timeout and retry, one family shows up twice in the system — and got billed twice. 😱",
+  clues:["👤 One subscriber, two records","🚨 Same order POSTed twice after a timeout","✅ Network side: one ONT, working fine"],
+  a:"cloud",
+  why:"An idempotency bug in the backend API: the retry created a second subscriber instead of recognizing the duplicate. Nothing physical is broken — the flaw is pure software. This is the exact class of bug backend testing exists to catch."},
+];
+const labChain=document.getElementById('labChain'), labTitle=document.getElementById('labTitle'),
+      labClues=document.getElementById('labClues'), labMsg=document.getElementById('labMsg'),
+      labNext=document.getElementById('labNext'), labScoreEl=document.getElementById('labScore'),
+      labTicket=document.getElementById('labTicket'), labDone=document.getElementById('labDone'),
+      labRestart=document.getElementById('labRestart');
+let ci=0, labScore=0, firstTry=true, caseDone=false;
+COMPS.forEach(([k,label,sub],i)=>{
+  const b=document.createElement('button'); b.className='comp'; b.dataset.k=k;
+  b.innerHTML=`${label}<small>${sub}</small>`;
+  b.onclick=()=>guess(k,b);
+  labChain.appendChild(b);
+  if(i<COMPS.length-1){const a=document.createElement('span'); a.className='arrow'; a.textContent='→'; labChain.appendChild(a);}
+});
+function loadCase(){
+  const c=CASES[ci];
+  firstTry=true; caseDone=false;
+  labTicket.textContent=`TICKET #00${ci+1}`;
+  labScoreEl.textContent=`Case ${ci+1} / ${CASES.length} · Score ${labScore}`;
+  labTitle.textContent=c.t;
+  labClues.innerHTML=c.clues.map(x=>`<span class="clue">${x}</span>`).join('');
+  labMsg.textContent='Which piece is broken? Click it.'; labMsg.className='labmsg';
+  labNext.style.display='none';
+  labChain.querySelectorAll('.comp').forEach(b=>{b.classList.remove('right','wrong'); b.disabled=false;});
+}
+const HINTS={wifi:"Hint: how far did the fast internet provably get?",
+ ont:"Hint: light is arriving… so what’s the next thing that could drop the ball?",
+ drop:"Hint: one home + weak light = whose glass?",
+ feeder:"Hint: count the victims. What do they all share?",
+ olt:"Hint: 40 splitters have exactly one thing in common.",
+ smx:"Hint: the network works but the cloud is blind. What sits between them?",
+ cloud:"Hint: every physical layer checks out. What’s left?"};
+function guess(k,btn){
+  if(caseDone) return;
+  const c=CASES[ci];
+  if(k===c.a){
+    caseDone=true;
+    btn.classList.add('right');
+    if(firstTry){labScore++;}
+    labScoreEl.textContent=`Case ${ci+1} / ${CASES.length} · Score ${labScore}`;
+    labMsg.className='labmsg good';
+    labMsg.innerHTML=`${firstTry?'🎯 Nailed it first try!':'✅ Got there!'} ${c.why}`;
+    labChain.querySelectorAll('.comp').forEach(b=>b.disabled=true);
+    if(ci<CASES.length-1){ labNext.style.display=''; }
+    else{
+      labDone.classList.add('show');
+      labDone.textContent = labScore>=7 ? `🧑‍🔬 ${labScore}/8 first-try — lab certified! You genuinely know what does what.`
+        : labScore>=4 ? `🔍 ${labScore}/8 first-try — solid detective work. Replay to chase a perfect run.`
+        : `🧪 ${labScore}/8 first-try — the chain takes practice. Replay it; the clues always point at blast radius + what’s provably fine.`;
+      labRestart.style.display='';
+      if(labScore>=7) confetti();
+    }
+  }else{
+    firstTry=false;
+    btn.classList.add('wrong');
+    setTimeout(()=>btn.classList.remove('wrong'),450);
+    labMsg.className='labmsg badm';
+    labMsg.textContent=`Not quite — that piece checks out in the clues. ${HINTS[c.a]}`;
+  }
+}
+labNext.onclick=()=>{ci++; loadCase();};
+labRestart.onclick=()=>{ci=0; labScore=0; labDone.classList.remove('show'); labRestart.style.display='none'; loadCase();};
+loadCase();
+
+/* ---------- QUIZ ---------- */
+const QUIZ=[
+ ["Why can’t your neighbor watch your Netflix, even though the OLT broadcasts everyone’s downloads to all 32 homes?",
+  ["Each home’s traffic is encrypted — only your ONT has the key","The splitter sorts the traffic by house","Each home has its own separate fiber","Neighbors pinky-promise not to look"],0,
+  "The splitter is dumb glass — it copies everything to everyone. Privacy comes from encryption: your ONT only decrypts traffic addressed to it."],
+ ["The splitter in a PON needs how much electricity?",
+  ["None — it’s just glass","A little, from a battery","Same as a Wi-Fi router","It plugs into the nearest house"],0,
+  "That’s the P in PON: Passive. No power, no software, nothing to reboot — which is why the outside plant is so cheap and reliable."],
+ ["A customer wants their Wi-Fi password changed remotely. Which protocol family does the ACS use to do it without a truck roll?",
+  ["TR-069 / USP","NETCONF","SNMP","DHCP"],0,
+  "TR-069 (and its successor TR-369/USP) is the standard for managing in-home devices at fleet scale — Wi-Fi settings, firmware, diagnostics."],
+ ["One fiber cut generates 4,000 alarms. What must the health backend do?",
+  ["Correlate them into one incident with one root cause","Email all 4,000 to the on-call engineer","Ignore them until a customer calls","Restart every ONT"],0,
+  "Alarm correlation is a core operations-cloud job: 4,000 symptoms, one cause, one truck roll. And it’s exactly what I test with synthetic storms."],
+ ["An ‘add subscriber’ call to the EMS times out and the backend retries. What property prevents the family being activated (and billed!) twice?",
+  ["Idempotency","Attenuation","Quality of Service","Total internal reflection"],0,
+  "Retries are inevitable in distributed systems, so operations must be idempotent — doing it twice has the same effect as once. A favorite test target."],
+];
+const quizBox=document.getElementById('quizBox'), scorecard=document.getElementById('scorecard');
+let score=0, answered=0;
+QUIZ.forEach(([q,opts,right,why],qi)=>{
+  const shuffled=opts.map((o,i)=>[o,i]).sort(()=>qi%2?-.5:.5); // ponytail: deterministic-ish shuffle, real RNG not needed
+  const div=document.createElement('div'); div.className='q';
+  div.innerHTML=`<b>${qi+1}. ${q}</b><div class="opts"></div><div class="why">${why}</div>`;
+  const optsEl=div.querySelector('.opts'), whyEl=div.querySelector('.why');
+  shuffled.forEach(([text,orig])=>{
+    const b=document.createElement('button'); b.className='opt'; b.textContent=text;
+    b.onclick=()=>{
+      if(div.dataset.done) return; div.dataset.done=1; answered++;
+      if(orig===right){ b.classList.add('right'); score++; }
+      else{ b.classList.add('wrong'); [...optsEl.children].find(x=>x.textContent===opts[right]).classList.add('right'); }
+      whyEl.classList.add('show');
+      [...optsEl.children].forEach(x=>x.disabled=true);
+      if(answered===QUIZ.length){
+        scorecard.classList.add('show');
+        scorecard.textContent = score===5 ? `🏆 ${score}/5 — you officially speak broadband. Welcome to the team!`
+          : score>=3 ? `🎉 ${score}/5 — solid! The glossary below will mop up the rest.`
+          : `📚 ${score}/5 — no shame, this stuff took me weeks. Scroll back up and play with the toys again.`;
+        if(score>=4) confetti();
+      }
+    };
+    optsEl.appendChild(b);
+  });
+  quizBox.appendChild(div);
+});
+
+/* ---------- theme toggle ---------- */
+document.getElementById('themeBtn').onclick=()=>{
+  const r=document.documentElement;
+  const dark=r.dataset.theme? r.dataset.theme==='dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  r.dataset.theme=dark?'light':'dark';
+};
+</script>
