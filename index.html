@@ -379,6 +379,39 @@ details.lesson .body{padding:0 20px 18px; max-width:70ch}
 .gcard .use{font-size:.83rem; color:var(--muted); font-style:italic; margin-top:8px; border-top:1px dashed var(--line); padding-top:8px}
 .gcount{color:var(--muted); font-size:.85rem; margin-top:12px}
 
+
+/* ---------- study hall ---------- */
+.xpwrap{margin:10px 0 4px}
+.xpbar{height:14px; border-radius:99px; background:var(--surface2); border:1px solid var(--line); overflow:hidden}
+.xpfill{height:100%; width:0%; border-radius:99px; background:linear-gradient(90deg,var(--down),var(--good)); transition:width .6s ease}
+.xplabel{font-size:.85rem; color:var(--muted); margin-top:6px; font-variant-numeric:tabular-nums}
+.quests{display:flex; flex-wrap:wrap; gap:6px; margin-top:12px}
+.quest{font-size:.75rem; border:1px solid var(--line); color:var(--muted); border-radius:99px; padding:3px 10px}
+.quest.won{border-color:var(--good); color:var(--good)}
+.toast{position:fixed; right:18px; bottom:18px; z-index:300; background:var(--surface); border:1px solid var(--good);
+  color:var(--ink); border-radius:10px; padding:10px 16px; box-shadow:var(--shadow); font-weight:600; animation:pop2 .4s ease}
+.fcard{min-height:180px; border:2px solid var(--line); border-radius:14px; padding:22px; background:var(--surface2);
+  display:flex; flex-direction:column; justify-content:center; text-align:center; cursor:pointer}
+.fcard .fterm{font-family:ui-monospace,monospace; font-size:1.6rem; font-weight:700; color:var(--down)}
+.fcard .fdef{font-size:1rem}
+.fcard .fuse{font-size:.85rem; color:var(--muted); font-style:italic; margin-top:8px}
+.fcbtns{display:flex; gap:10px; margin-top:12px; flex-wrap:wrap}
+.fcstats{font-size:.8rem; color:var(--muted); font-family:ui-monospace,monospace; margin-top:8px}
+.loci-card{border:2px dashed var(--eli5line); background:var(--eli5bg); color:var(--eli5ink); border-radius:14px; padding:18px 22px; min-height:150px}
+.loci-card .lplace{font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; font-weight:700; opacity:.7}
+.loci-card .lscene{font-size:2.2rem; margin:.2em 0}
+.loci-card .lvivid{font-family:"Chalkboard SE","Comic Sans MS",cursive; font-size:1.05rem}
+.loci-dots{display:flex; gap:6px; margin-top:10px}
+.loci-dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.loci-dots i.on{background:var(--up)}
+.feyn textarea{width:100%; min-height:90px; border:1.5px solid var(--line); border-radius:10px; background:var(--surface2);
+  color:var(--ink); font:inherit; padding:10px 12px; resize:vertical}
+.feyn .model{display:none; border-left:3px solid var(--good); padding:8px 12px; margin-top:10px; font-size:.92rem;
+  background:color-mix(in srgb,var(--good) 8%,var(--surface)); border-radius:0 8px 8px 0}
+.feyn .model.show{display:block}
+.certrow{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px}
+.certrow input{border:1.5px solid var(--line); background:var(--surface2); color:var(--ink); border-radius:10px; padding:9px 14px; font:inherit}
+
 /* ---------- tester table ---------- */
 .tbl-wrap{overflow-x:auto}
 table{border-collapse:collapse; width:100%; font-size:.92rem; min-width:640px}
@@ -402,6 +435,7 @@ footer{border-top:1px solid var(--line); color:var(--muted); font-size:.85rem; p
   <a href="#tester">Tester’s lens</a>
   <a href="#labgame">🧪 Lab</a>
   <a href="#arcade">🕹️ Arcade</a>
+  <a href="#study">📚 Study</a>
   <a href="#quiz">Quiz</a>
   <a href="#glossary">Glossary</a>
   <button class="theme" id="themeBtn" aria-label="Toggle color theme">◐ Theme</button>
@@ -947,6 +981,66 @@ footer{border-top:1px solid var(--line); color:var(--muted); font-size:.85rem; p
   <p class="prose">Five questions. No pressure. (Okay, a little pressure.)</p>
   <div class="quiz" id="quizBox"></div>
   <div class="scorecard" id="scorecard" aria-live="polite"></div>
+</section>
+
+<section id="study" class="reveal">
+  <div class="eyebrow">Study Hall · learning science from around the world</div>
+  <h2>📚 Make it stick</h2>
+  <div class="eli5">
+    <span class="who">🖍️ Like you’re five</span>
+    Reading feels like learning, but it washes off in the shower. What sticks is <b>trying to remember</b> (flashcards),
+    <b>walking a story in your head</b> (an ancient Greek trick), and <b>teaching it back</b> in your own words
+    (a physicist’s trick). This room uses all three — and your notebook remembers your progress.
+  </div>
+
+  <div class="lab">
+    <h3>📓 Your field notebook</h3>
+    <p class="prose" style="margin-top:0">Every experiment you run anywhere on this page earns a field note.
+    Fill the notebook, earn the certificate.</p>
+    <div class="xpwrap"><div class="xpbar"><div class="xpfill" id="xpfill"></div></div>
+    <div class="xplabel" id="xplabel"></div></div>
+    <div class="quests" id="questStrip"></div>
+    <div class="certrow" id="certRow" style="display:none">
+      <input type="text" id="certName" placeholder="Your name" maxlength="40" aria-label="Name for certificate">
+      <button class="btn primary" id="certBtn">🎓 Generate my certificate</button>
+      <a id="certLink" class="btn" style="display:none; text-decoration:none" download="fiber-fluency-certificate.png">⬇ Download</a>
+    </div>
+  </div>
+
+  <div class="lab">
+    <h3>🃏 Flashcards — spaced repetition (the Leitner system, Germany, 1972)</h3>
+    <p class="prose" style="margin-top:0">Cards you miss come back often; cards you know retreat to later boxes.
+    Ten graded cards a visit beats an hour of rereading. Click the card to flip it.</p>
+    <div class="fcard" id="fcCard" tabindex="0" role="button" aria-label="Flashcard — click to flip"></div>
+    <div class="fcbtns">
+      <button class="btn" id="fcShow">Flip 🃏</button>
+      <button class="btn danger" id="fcAgain" style="display:none">❌ Again (box 1)</button>
+      <button class="btn primary" id="fcGot" style="display:none">✅ Got it (box up)</button>
+    </div>
+    <div class="fcstats" id="fcStats"></div>
+  </div>
+
+  <div class="lab">
+    <h3>🏛️ The Memory Walk — method of loci (ancient Greece)</h3>
+    <p class="prose" style="margin-top:0">Orators memorized speeches by placing vivid images along a familiar walk.
+    Walk this route from your bedroom to the cloud — the weirder the image, the harder it sticks. Then test yourself blind.</p>
+    <div class="loci-card" id="lociCard"></div>
+    <div class="stepnav">
+      <button class="btn" id="lociPrev">← Back</button>
+      <button class="btn" id="lociNext">Next →</button>
+      <button class="btn primary" id="lociTest">🧠 Walk it blind</button>
+      <div class="loci-dots" id="lociDots"></div>
+    </div>
+    <div class="pktline" id="lociPool" style="display:none"></div>
+    <div class="labmsg" id="lociMsg"></div>
+  </div>
+
+  <div class="lab feyn">
+    <h3>👨‍🏫 The Feynman corner — teach it back</h3>
+    <p class="prose" style="margin-top:0">Richard Feynman’s test of understanding: explain it simply, out loud, no jargon.
+    Type your explanation (nobody sees it), then compare with a model answer and grade yourself honestly.</p>
+    <div id="feynBox"></div>
+  </div>
 </section>
 
 <section id="glossary" class="reveal">
@@ -1666,6 +1760,158 @@ QUIZ.forEach(([q,opts,right,why],qi)=>{
     optsEl.appendChild(b);
   });
   quizBox.appendChild(div);
+});
+
+/* ---------- STUDY HALL ---------- */
+const store={
+  get(k,d){ try{const v=localStorage.getItem('ffg-'+k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{localStorage.setItem('ffg-'+k,JSON.stringify(v));}catch(e){} }
+};
+/* notebook / quests */
+const QUESTS={laser:'Fired the laser',bend:'Bent a fiber',waves:'Mixed wavelengths',broadcast:'Sent a broadcast',
+ turns:'Ran upstream turns',cut:'Cut the fiber',budget:'Ran the budget math',storm:'Survived an alarm storm',
+ climb:'Watched telemetry climb',story:'Played Add-Subscriber',packets:'Reassembled packets',match:'Cleared the match board',
+ lab:'Finished the Troubleshooting Lab',quiz:'Took the quiz',flash:'Graded 10 flashcards',walk:'Walked the route blind',feyn:'Taught it back'};
+let doneQ=store.get('quests',{});
+const xpfill=document.getElementById('xpfill'), xplabel=document.getElementById('xplabel'),
+      questStrip=document.getElementById('questStrip'), certRow=document.getElementById('certRow');
+function renderXP(){
+  const total=Object.keys(QUESTS).length, n=Object.keys(doneQ).length;
+  xpfill.style.width=(n/total*100)+'%';
+  xplabel.textContent=`${n} / ${total} field notes collected${n>=total?' — notebook complete! 🎓':''}`;
+  questStrip.innerHTML=Object.entries(QUESTS).map(([k,v])=>`<span class="quest ${doneQ[k]?'won':''}">${doneQ[k]?'✓ ':''}${v}</span>`).join('');
+  certRow.style.display = n>=Math.ceil(total*0.8) ? '' : 'none';
+}
+function award(k){
+  if(doneQ[k]||!QUESTS[k]) return;
+  doneQ[k]=1; store.set('quests',doneQ); renderXP();
+  const t=document.createElement('div'); t.className='toast'; t.textContent=`🏅 Field note: ${QUESTS[k]}`;
+  document.body.appendChild(t); setTimeout(()=>t.remove(),2600);
+}
+renderXP();
+const CLICKMAP={fireBtn:'laser',dsBtn:'broadcast',usBtn:'turns',scissors:'cut',stormBtn:'storm',flowUpBtn:'climb',playBtn:'story'};
+document.addEventListener('click',e=>{const el=e.target.closest('[id]'); if(el&&CLICKMAP[el.id]) award(CLICKMAP[el.id]);});
+document.getElementById('r-bend').addEventListener('input',()=>award('bend'),{once:true});
+['r-km','r-split','r-splice','r-conn'].forEach(id=>document.getElementById(id).addEventListener('input',()=>award('budget'),{once:true}));
+document.getElementById('wavechips').addEventListener('click',()=>award('waves'),{once:true});
+setInterval(()=>{
+  if(document.getElementById('scorecard').classList.contains('show')) award('quiz');
+  if(document.getElementById('labDone').classList.contains('show')) award('lab');
+  if(document.getElementById('pktMsg').classList.contains('good')) award('packets');
+  if(document.querySelectorAll('.mbtn.done').length>=16) award('match');
+},2500);
+/* certificate */
+document.getElementById('certBtn').addEventListener('click',()=>{
+  const name=(document.getElementById('certName').value||'A Curious Human').slice(0,40);
+  const c=document.createElement('canvas'); c.width=1100; c.height=700; const x=c.getContext('2d');
+  x.fillStyle='#0B1424'; x.fillRect(0,0,1100,700);
+  x.strokeStyle='#3FD3F2'; x.lineWidth=3; x.strokeRect(30,30,1040,640);
+  x.fillStyle='#7FA3C8'; x.font='24px Georgia'; x.textAlign='center';
+  x.fillText('T H E   F I B E R   F I E L D   G U I D E',550,120);
+  x.fillStyle='#E8F0FA'; x.font='bold 52px Georgia';
+  x.fillText('Certificate of Fiber Fluency',550,210);
+  x.fillStyle='#B9CBE0'; x.font='26px Georgia'; x.fillText('awarded to',550,280);
+  x.fillStyle='#3FD3F2'; x.font='bold 46px Georgia'; x.fillText(name,550,345);
+  x.fillStyle='#B9CBE0'; x.font='22px Georgia';
+  x.fillText('for bending fibers, cutting PONs, surviving alarm storms,',550,420);
+  x.fillText('reassembling packets, and speaking fluent broadband.',550,455);
+  x.fillStyle='#8FA8C4'; x.font='20px Georgia';
+  x.fillText(new Date().toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'}),550,560);
+  for(let i=0;i<12;i++){ x.fillStyle=i%2?'#F2A94A':'#3FD3F2'; x.beginPath(); x.arc(120+i*80,610,6,0,7); x.fill(); }
+  const a=document.getElementById('certLink'); a.href=c.toDataURL('image/png'); a.style.display=''; a.textContent='⬇ Download your certificate';
+});
+/* flashcards — Leitner */
+let boxes=store.get('boxes',{}), deck=[], cardIdx=0, gradedN=store.get('graded',0);
+const fcCard=document.getElementById('fcCard'), fcShow=document.getElementById('fcShow'),
+      fcAgain=document.getElementById('fcAgain'), fcGot=document.getElementById('fcGot'), fcStats=document.getElementById('fcStats');
+function buildDeck(){
+  deck=G.filter(g=>{const b=boxes[g[0]]||1; return b===1||(b===2&&Math.random()<.5)||(b===3&&Math.random()<.25);});
+  if(deck.length<5) deck=deck.concat(G.slice().sort(()=>Math.random()-.5).slice(0,8));
+  deck.sort(()=>Math.random()-.5); cardIdx=0;
+}
+function fcRender(back){
+  const g=deck[cardIdx];
+  fcCard.innerHTML = back
+    ? `<div class="fdef">${g[3]}</div><div class="fuse">${g[4]}</div>`
+    : `<div class="fterm">${g[0]}</div>${g[1]!=='—'?`<div class="fuse">${g[1]}</div>`:''}`;
+  fcShow.style.display=back?'none':''; fcAgain.style.display=back?'':'none'; fcGot.style.display=back?'':'none';
+  const counts=[0,0,0]; G.forEach(g2=>counts[(boxes[g2[0]]||1)-1]++);
+  fcStats.textContent=`Box 1 (daily): ${counts[0]} · Box 2 (sometimes): ${counts[1]} · Box 3 (rarely): ${counts[2]} · graded this device: ${gradedN}`;
+}
+function fcGrade(up){
+  const t=deck[cardIdx][0];
+  boxes[t]=up?Math.min(3,(boxes[t]||1)+1):1;
+  store.set('boxes',boxes); gradedN++; store.set('graded',gradedN);
+  if(gradedN>=10) award('flash');
+  cardIdx++; if(cardIdx>=deck.length) buildDeck();
+  fcRender(false);
+}
+fcShow.onclick=()=>fcRender(true);
+fcCard.onclick=()=>{ if(fcShow.style.display!=='none') fcRender(true); };
+fcCard.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); if(fcShow.style.display!=='none') fcRender(true);}});
+fcAgain.onclick=()=>fcGrade(false); fcGot.onclick=()=>fcGrade(true);
+buildDeck(); fcRender(false);
+/* memory walk — method of loci */
+const LOCI=[
+ ["🛏️","Your bedroom","Wi-Fi","Candy-scented radio fog drifts through the walls — invisible, everywhere, feeding every screen."],
+ ["📦","The hallway closet","ONT + gateway","A mailbox is chewing a flashlight and spitting out Ethernet spaghetti. Light goes in, internet comes out."],
+ ["🌹","The front garden","Drop fiber","A single glass noodle is buried under the roses — your house’s private strand."],
+ ["🍕","The corner cabinet","Splitter","A pizza cutter slices one laser-pizza into 32 slices — using no electricity at all. (Passive!)"],
+ ["🏰","The town hub","OLT","A lighthouse keeper with a megaphone calls each house’s name in turn — nobody may speak out of turn."],
+ ["🤖","The hub’s back room","EMS","A robot butler translates wishes from the sky into machine grunts the boxes understand."],
+ ["☁️","The sky","Operations cloud","A control room in the clouds reads a million device diaries every second, looking for sad entries."],
+ ["🖥️","The NOC desk","Dashboard","One big green light that secretly means forty thousand happy families."],
+];
+let lociI=0;
+const lociCard=document.getElementById('lociCard'), lociDots=document.getElementById('lociDots'),
+      lociPool=document.getElementById('lociPool'), lociMsg=document.getElementById('lociMsg');
+lociDots.innerHTML=LOCI.map(()=>'<i></i>').join('');
+function lociRender(){
+  const [e,place,comp,vivid]=LOCI[lociI];
+  lociCard.innerHTML=`<div class="lplace">Stop ${lociI+1} of ${LOCI.length} · ${place}</div>
+    <div class="lscene">${e}</div><div><b>${comp}</b></div><div class="lvivid">${vivid}</div>`;
+  [...lociDots.children].forEach((d,i)=>d.classList.toggle('on',i<=lociI));
+}
+document.getElementById('lociPrev').onclick=()=>{lociI=Math.max(0,lociI-1); lociRender();};
+document.getElementById('lociNext').onclick=()=>{lociI=Math.min(LOCI.length-1,lociI+1); lociRender();};
+document.getElementById('lociTest').onclick=()=>{
+  lociPool.style.display=''; lociMsg.className='labmsg'; lociMsg.textContent='Click the stops in walking order — bedroom to dashboard.';
+  let need=0; lociPool.innerHTML='';
+  LOCI.map((l,i)=>[l,i]).sort(()=>Math.random()-.5).forEach(([[e,,comp],i])=>{
+    const b=document.createElement('button'); b.className='pkt'; b.innerHTML=`${e}<span class="seq">${comp}</span>`;
+    b.onclick=()=>{
+      if(i===need){ b.disabled=true; need++;
+        if(need===LOCI.length){ lociMsg.className='labmsg good';
+          lociMsg.textContent='🏆 Perfect walk! That chain is now spatial memory — the strongest kind. You can troubleshoot by strolling it.'; award('walk'); }
+      } else { b.classList.remove('err'); void b.offsetWidth; b.classList.add('err');
+        lociMsg.className='labmsg badm'; lociMsg.textContent='Not that stop yet — retrace the walk in your head.'; }
+    };
+    lociPool.appendChild(b);
+  });
+};
+lociRender();
+/* feynman corner */
+const FEYN=[
+ ["Explain to a neighbor: why did one cut cable knock out the whole street, while last month only YOUR house went down?",
+  "The street shares one feeder fiber and splitter — cut that shared glass and all 32 homes go dark at once (big blast radius). Your solo outage was in glass only you use: your drop fiber or your own box. Blast radius tells you where the break lives."],
+ ["Explain why retrying a failed “activate service” request must never bill a family twice.",
+  "Networks retry all the time — timeouts don’t mean failure, maybe the first request worked and only the reply got lost. So the operation must be idempotent: doing it twice has the same effect as once, usually via an idempotency key that lets the backend recognize a repeat and answer “already done” instead of activating (and billing) again."],
+ ["Explain how your upload and your neighbor’s upload never crash into each other on the shared fiber.",
+  "Upstream, everyone shares one wavelength, so the OLT acts like a teacher: it assigns each home a tiny time slot and homes only transmit in their slot — millions of times a second. Taking turns that fast looks simultaneous but guarantees zero collisions."],
+];
+const feynBox=document.getElementById('feynBox');
+FEYN.forEach(([q,model],i)=>{
+  const d=document.createElement('div'); d.className='q';
+  d.innerHTML=`<b>${i+1}. ${q}</b>
+    <textarea placeholder="Say it simply — no acronyms allowed…" aria-label="Your explanation"></textarea>
+    <div class="fcbtns"><button class="btn">Reveal model answer</button>
+      <button class="btn primary" style="display:none">✅ I nailed it</button>
+      <button class="btn" style="display:none">🤔 Halfway — flag for review</button></div>
+    <div class="model">${model}</div>`;
+  const [reveal,nailed,half]=d.querySelectorAll('button'), model2=d.querySelector('.model');
+  reveal.onclick=()=>{ model2.classList.add('show'); reveal.style.display='none'; nailed.style.display=''; half.style.display=''; };
+  nailed.onclick=half.onclick=()=>{ nailed.disabled=half.disabled=true; award('feyn'); };
+  feynBox.appendChild(d);
 });
 
 /* ---------- theme toggle ---------- */
