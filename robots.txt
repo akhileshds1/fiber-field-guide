@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://akhileshds1.github.io/fiber-field-guide/sitemap.xml

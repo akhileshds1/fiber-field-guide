@@ -2,6 +2,10 @@
 
 **An interactive, ELI5-friendly field guide to fiber broadband — from photons in glass to the operator cloud.**
 
+### ▶️ **[Open the guide → akhileshds1.github.io/fiber-field-guide](https://akhileshds1.github.io/fiber-field-guide/)**
+
+[![The Fiber Field Guide](assets/og-image.png)](https://akhileshds1.github.io/fiber-field-guide/)
+
 One self-contained HTML file. No frameworks, no build step, no dependencies, no tracking. Open `index.html` and start playing.
 
 ## What's inside
