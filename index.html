@@ -396,6 +396,18 @@ details.lesson .body{padding:0 20px 18px; max-width:70ch}
 .gcount{color:var(--muted); font-size:.85rem; margin-top:12px}
 
 
+
+/* ---------- triage + poison games ---------- */
+.bigread{font-family:ui-monospace,monospace; font-size:2.4rem; font-weight:700; text-align:center; margin:12px 0; font-variant-numeric:tabular-nums}
+.pevgrid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0}
+@media (max-width:700px){.pevgrid{grid-template-columns:1fr}}
+.pev{cursor:pointer; text-align:left; font-family:ui-monospace,monospace; font-size:.72rem; line-height:1.5;
+  border:2px solid var(--line); border-radius:10px; padding:10px 12px; background:var(--surface2); color:var(--ink);
+  white-space:pre-wrap; word-break:break-word; transition:border-color .15s}
+.pev:hover:not(:disabled){border-color:var(--down)}
+.pev.goodp{border-color:var(--good)}
+.pev.badp{border-color:var(--bad); animation:shake .4s ease}
+
 /* ---------- study hall ---------- */
 .xpwrap{margin:10px 0 4px}
 .xpbar{height:14px; border-radius:99px; background:var(--surface2); border:1px solid var(--line); overflow:hidden}
@@ -1086,6 +1098,30 @@ topic: <span class="s">telemetry.optics</span>   <span class="c">// partitioned 
       <div class="mcol" id="mDefs"></div>
     </div>
     <div class="labmsg" id="mMsg"></div>
+  </div>
+
+  <div class="lab">
+    <h3>🩺 Light-level triage</h3>
+    <p class="prose" style="margin-top:0">A NOC skill, speed-run: an ONT reports its received optical power. Healthy is
+    roughly <b>−8 to −24 dBm</b>, borderline to <b>−28</b>, dead below that — and above −8 the photodiode is being
+    <b>blasted</b> (too-short path). Eight patients. Triage them:</p>
+    <div class="bigread" id="triRead"></div>
+    <div class="fcbtns" id="triBtns">
+      <button class="btn">🔥 Too hot</button><button class="btn">✅ Healthy</button>
+      <button class="btn">⚠️ Borderline</button><button class="btn">❌ Dead</button>
+    </div>
+    <div class="labmsg" id="triMsg"></div>
+    <button class="btn" id="triReset" style="display:none">↺ New shift</button>
+  </div>
+
+  <div class="lab">
+    <h3>☠️ Spot the poison pill</h3>
+    <p class="prose" style="margin-top:0">Four telemetry events just landed on the bus. One is malformed — and if a
+    consumer chokes on it, it crash-loops forever (that’s why real pipelines have dead-letter queues). You’re the schema
+    validator: click the poison pill.</p>
+    <div class="pevgrid" id="pevGrid"></div>
+    <div class="labmsg" id="pevMsg"></div>
+    <button class="btn" id="pevNext" style="display:none">Next batch →</button>
   </div>
 </section>
 
@@ -1866,6 +1902,76 @@ function mkM(txt,col,key,isTerm){
 MATCH.map((p,i)=>[p[0],i]).sort(()=>Math.random()-.5).forEach(([t,i])=>mkM(t,mTerms,i,true));
 MATCH.map((p,i)=>[p[1],i]).sort(()=>Math.random()-.5).forEach(([d,i])=>mkM(d,mDefs,i,false));
 
+/* ---------- ARCADE: LIGHT-LEVEL TRIAGE ---------- */
+const triRead=document.getElementById('triRead'), triMsg=document.getElementById('triMsg'),
+      triBtns=[...document.getElementById('triBtns').children], triReset=document.getElementById('triReset');
+const TRI_CLASSES=['hot','ok','border','dead'];
+function triClass(v){ return v>-8?'hot':v>=-24?'ok':v>=-28?'border':'dead'; }
+const TRI_WHY={hot:'Above −8 dBm the receiver is overloaded — usually a lab bench or a missing attenuator.',
+ ok:'−8 to −24 dBm: comfortably inside spec. This ONT is fine.',
+ border:'−24 to −28 dBm: works today, trouble ticket tomorrow. Flag it proactively.',
+ dead:'Below −28 dBm the ONT can’t range. Find what’s eating the budget.'};
+let triRound=0, triScore=0, triVal=0;
+function triDraw(){
+  const pools=[[-3,-6,-1],[-12,-15,-18,-21,-23],[-25,-26.5,-27.5],[-29,-31,-34]];
+  const cls=Math.floor(Math.random()*4), arr=pools[cls];
+  triVal=arr[Math.floor(Math.random()*arr.length)];
+  triRead.textContent=(triVal>0?'+':'−')+Math.abs(triVal).toFixed(1)+' dBm';
+  triMsg.className='labmsg'; triMsg.textContent=`Patient ${triRound+1} of 8`;
+}
+triBtns.forEach((b,i)=>b.onclick=()=>{
+  if(triRound>=8) return;
+  const right=triClass(triVal)===TRI_CLASSES[i];
+  if(right) triScore++;
+  triMsg.className='labmsg '+(right?'good':'badm');
+  triMsg.textContent=(right?'✅ Correct. ':'❌ Not quite. ')+TRI_WHY[triClass(triVal)];
+  triRound++;
+  if(triRound>=8){
+    setTimeout(()=>{ triMsg.className='labmsg '+(triScore>=6?'good':'badm');
+      triMsg.textContent=`Shift over: ${triScore}/8 triaged correctly.`+(triScore>=6?' The NOC would hire you. 🏅':' Rerun the budget calculator above, then try another shift.');
+      triReset.style.display='';
+      if(triScore>=6) award('triage');
+    }, 900);
+  } else setTimeout(triDraw, 1100);
+});
+triReset.onclick=()=>{triRound=0; triScore=0; triReset.style.display='none'; triDraw();};
+triDraw();
+
+/* ---------- ARCADE: POISON PILL ---------- */
+const pevGrid=document.getElementById('pevGrid'), pevMsg=document.getElementById('pevMsg'), pevNext=document.getElementById('pevNext');
+const POISONS=[
+ [e=>{e.rxPowerDbm="banana"; return 'rxPowerDbm is a string — "banana" is not a number. Schema validation should have bounced this at the collector.';}],
+ [e=>{delete e.deviceId; return 'No deviceId — this event can never be routed to a partition or matched to inventory.';}],
+ [e=>{e.ts="1970-01-01T00:00:00Z"; return 'Timestamp is the Unix epoch — a device with a dead clock. Naive pipelines graph it 56 years in the past.';}],
+ [e=>{e.tenantId=null; return 'Null tenantId — the one field that must NEVER be missing. Where does this row go? Nowhere safe.';}],
+ [e=>{e.seq=-12; return 'Negative sequence number — consumers using seq for ordering/dedup will misbehave quietly.';}],
+];
+let pevRound=0, pevScore=0;
+function pevEvent(n){ return {deviceId:'CXNK00'+(70+n)+'F', rxPowerDbm:+(-(14+Math.random()*8)).toFixed(1),
+  ts:'2026-07-05T09:'+String(10+n)+':41Z', tenantId:'csp-042', seq:5500+n}; }
+function pevDraw(){
+  pevGrid.innerHTML=''; pevMsg.className='labmsg'; pevMsg.textContent=`Batch ${pevRound+1} of 5 — one of these is broken.`;
+  pevNext.style.display='none';
+  const bad=Math.floor(Math.random()*4), [mut]=POISONS[pevRound%POISONS.length];
+  let why='';
+  for(let i=0;i<4;i++){
+    const ev=pevEvent(i); if(i===bad) why=mut(ev);
+    const b=document.createElement('button'); b.className='pev'; b.textContent=JSON.stringify(ev,null,1);
+    b.onclick=()=>{
+      if(pevNext.style.display==='') return;
+      if(i===bad){ b.classList.add('goodp'); pevScore++; pevMsg.className='labmsg good'; pevMsg.textContent='🧪 Caught it! '+why; }
+      else{ b.classList.add('badp'); pevMsg.className='labmsg badm'; pevMsg.textContent='That one parses fine. The poison is still loose…'; return; }
+      pevRound++;
+      if(pevRound>=5){ pevMsg.textContent+=` — Done: ${pevScore}/5 pills caught.`+(pevScore>=4?' DLQ duty suits you. 🏅':'');
+        if(pevScore>=4) award('poison'); pevNext.textContent='↺ Play again'; pevNext.onclick=()=>{pevRound=0;pevScore=0;pevDraw();}; }
+      pevNext.style.display='';
+    };
+    pevGrid.appendChild(b);
+  }
+}
+pevNext.onclick=pevDraw;
+pevDraw();
+
 /* ---------- QUIZ ---------- */
 const QUIZ=[
  ["Why can’t your neighbor watch your Netflix, even though the OLT broadcasts everyone’s downloads to all 32 homes?",
@@ -1920,7 +2026,7 @@ const store={
 /* notebook / quests */
 const QUESTS={laser:'Fired the laser',bend:'Bent a fiber',waves:'Mixed wavelengths',broadcast:'Sent a broadcast',
  turns:'Ran upstream turns',cut:'Cut the fiber',budget:'Ran the budget math',storm:'Survived an alarm storm',
- climb:'Watched telemetry climb',story:'Played Add-Subscriber',packets:'Reassembled packets',match:'Cleared the match board',
+ climb:'Watched telemetry climb',story:'Played Add-Subscriber',packets:'Reassembled packets',match:'Cleared the match board',triage:'Triaged light levels',poison:'Caught the poison pills',
  lab:'Finished the Troubleshooting Lab',quiz:'Took the quiz',flash:'Graded 10 flashcards',walk:'Walked the route blind',feyn:'Taught it back'};
 let doneQ=store.get('quests',{});
 const xpfill=document.getElementById('xpfill'), xplabel=document.getElementById('xplabel'),

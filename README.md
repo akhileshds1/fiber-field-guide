@@ -4,7 +4,7 @@
 
 ### ▶️ **[Open the guide → akhileshds1.github.io/fiber-field-guide](https://akhileshds1.github.io/fiber-field-guide/)**
 
-[![The Fiber Field Guide](assets/og-image.png)](https://akhileshds1.github.io/fiber-field-guide/)
+[![Tour of the Fiber Field Guide — light lab, PON playground, budget calculator, saga demo, games](assets/demo.gif)](https://akhileshds1.github.io/fiber-field-guide/)
 
 One self-contained HTML file. No frameworks, no build step, no dependencies, no tracking. Open `index.html` and start playing.
 
@@ -21,6 +21,9 @@ One self-contained HTML file. No frameworks, no build step, no dependencies, no 
 | ⛈️ **Alarm Storm** | Cut one fiber, watch 32 alarms correlate into one incident |
 | 👨‍👩‍👧 **"Add Subscriber", end to end** | Animated 8-step walkthrough from order to confetti |
 | 🧪 **The Troubleshooting Lab** | A game: 8 trouble tickets, click the broken component, learn blast-radius diagnosis |
+| ⚙️ **Backend Internals** | The write path (outbox pattern, idempotency keys), a playable saga with failure injection, the telemetry read path |
+| 🕹️ **The Arcade** | Packet reassembly, acronym matching, light-level triage, and spot-the-poison-pill |
+| 📚 **Study Hall** | Leitner spaced-repetition flashcards, a method-of-loci memory walk, Feynman teach-it-back, and a progress notebook with certificate |
 | 🎓 **Quiz + Jargon Decoder** | 5-question check and a searchable glossary of ~50 industry terms with real usage sentences |
 
 Every section has a 🖍️ *"Like you're five"* explanation, and every acronym on the page has a hover tooltip.
