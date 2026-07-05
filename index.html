@@ -257,6 +257,22 @@ details.lesson .body{padding:0 20px 18px; max-width:70ch}
 }
 .archpanel .probe b{color:var(--up)}
 
+
+/* ---------- backend internals ---------- */
+.codeblock{background:var(--surface2); border:1px solid var(--line); border-radius:10px; padding:12px 16px; overflow-x:auto;
+  font-family:ui-monospace,"SF Mono",Consolas,monospace; font-size:.8rem; line-height:1.55; margin:10px 0; white-space:pre}
+.codeblock .k{color:var(--down)} .codeblock .c{color:var(--muted)} .codeblock .s{color:var(--up)}
+.saga{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:14px 0}
+.sg{border:2px solid var(--line); border-radius:10px; padding:7px 11px; font-family:ui-monospace,monospace; font-size:.78rem;
+  font-weight:700; color:var(--muted); background:var(--surface); transition:all .25s}
+.sg.on{border-color:var(--down); color:var(--down); box-shadow:0 0 0 3px color-mix(in srgb,var(--down) 22%,transparent)}
+.sg.ok{border-color:var(--good); color:var(--good)}
+.sg.retry{border-color:var(--warn); color:var(--warn); animation:shake .4s ease}
+.sg.fail{border-color:var(--bad); color:var(--bad)}
+.sg.comp{border-style:dashed; border-color:var(--bad); color:var(--muted); text-decoration:line-through}
+.sgarrow{color:var(--muted); font-size:.8rem}
+.sagamsg{min-height:2.4em; font-size:.92rem; margin-top:6px}
+
 /* ---------- flow stepper ---------- */
 .actors{display:flex; flex-wrap:wrap; gap:8px; margin:16px 0}
 .actor{border:1.5px solid var(--line); background:var(--surface); border-radius:99px; padding:5px 14px; font-size:.85rem; font-weight:600; color:var(--muted); transition:all .25s}
@@ -431,6 +447,7 @@ footer{border-top:1px solid var(--line); color:var(--muted); font-size:.85rem; p
   <a href="#networking">Networking</a>
   <a href="#stack">The stack</a>
   <a href="#opscloud">Cloud BE</a>
+  <a href="#internals">⚙️ Internals</a>
   <a href="#flow">Add subscriber</a>
   <a href="#tester">Tester’s lens</a>
   <a href="#labgame">🧪 Lab</a>
@@ -859,6 +876,103 @@ footer{border-top:1px solid var(--line); color:var(--muted); font-size:.85rem; p
   </div>
   <p class="diagram-note">Tester’s angle: I inject exactly this storm synthetically and assert the backend produces <b>one</b>
   incident, not 4,000 — and that a “clear” arriving before its “raise” doesn’t confuse it.</p>
+</section>
+
+<section id="internals" class="reveal">
+  <div class="eyebrow">Under the hood · how the cloud backend may actually be built</div>
+  <h2>⚙️ Backend internals: how the sausage is made</h2>
+  <div class="eli5">
+    <span class="who">🖍️ Like you’re five</span>
+    The cloud isn’t one big brain — it’s a <b>restaurant kitchen</b>. Your order goes on a ticket rail (the message bus).
+    Different chefs (services) each cook one thing, at their own pace, reading tickets off the rail. If the grill catches
+    fire mid-order, the kitchen doesn’t serve half a meal — it either finishes the dish or <b>puts every ingredient back</b>
+    and tells the waiter to apologize. This section is how that kitchen is wired.
+  </div>
+  <p class="prose">A generalized view of how operator-cloud backends are commonly engineered — the patterns you’ll meet in
+  design docs and postmortems. (Every real system differs in detail.)</p>
+
+  <details class="lesson" open>
+    <summary>The write path: what one REST call really does</summary>
+    <div class="body">
+      <p>“Add subscriber” looks like one HTTP call. Inside, it fans out into a careful sequence:</p>
+<div class="codeblock"><span class="c">// 1. the request (note the idempotency key — retries must be safe)</span>
+<span class="k">POST</span> /api/v1/subscribers
+Idempotency-Key: <span class="s">"ord-7f3a-2291"</span>
+{ <span class="k">"name"</span>: <span class="s">"Rivera Family"</span>, <span class="k">"serviceTier"</span>: <span class="s">"1G_SYMMETRIC"</span>,
+  <span class="k">"ontSerial"</span>: <span class="s">"CXNK007A55F1"</span>, <span class="k">"locationId"</span>: <span class="s">"loc-8841"</span> }
+
+<span class="c">// 2. API gateway: authn (OAuth2 scopes), rate limit, tenant routing</span>
+<span class="c">// 3. subscriber service: validate → ONE database transaction writes BOTH:</span>
+<span class="c">//      the subscriber row  +  an event row in an "outbox" table</span>
+<span class="c">// 4. a relay publishes the outbox event to the bus (this is the OUTBOX</span>
+<span class="c">//      PATTERN — the DB write and the event can never disagree)</span>
+{ <span class="k">"type"</span>: <span class="s">"subscriber.created"</span>, <span class="k">"tenantId"</span>: <span class="s">"csp-042"</span>, <span class="k">"seq"</span>: 5512,
+  <span class="k">"payload"</span>: { <span class="k">"subscriberId"</span>: <span class="s">"sub-99el"</span>, <span class="k">"state"</span>: <span class="s">"CREATED"</span> } }
+
+<span class="c">// 5. API answers 202 Accepted immediately — the real work is async.</span>
+<span class="c">//      The client polls GET /subscribers/sub-99el or subscribes to events.</span></div>
+      <p>Two ideas carry the whole design: <b>idempotency keys</b> (a retried POST finds the original result instead of
+      double-creating) and <b>202 + async status</b> (device work takes seconds-to-minutes; nobody holds an HTTP
+      connection open for a NETCONF transaction). <b>Tester’s angle:</b> replay the same key, kill the relay between the
+      DB write and the publish, and check the status endpoint tells the truth at every intermediate moment.</p>
+    </div>
+  </details>
+
+  <details class="lesson" open>
+    <summary>The orchestrator: a saga with retries and compensation — try it</summary>
+    <div class="body">
+      <p>Provisioning spans systems that can each fail independently, so it runs as a <b>saga</b>: an ordered list of steps
+      with a persisted state machine. Transient failures get <b>retries with exponential backoff</b>; permanent failures
+      trigger <b>compensation</b> — undoing completed steps in reverse so nothing is left half-provisioned. Run both paths:</p>
+      <div class="saga" id="sagaRow"></div>
+      <div class="fcbtns">
+        <button class="btn primary" id="sagaHappy">▶ Happy path</button>
+        <button class="btn danger" id="sagaFail">💥 EMS times out at step 3</button>
+      </div>
+      <div class="sagamsg" id="sagaMsg" aria-live="polite"></div>
+      <p><b>Tester’s angle:</b> the saga’s state lives in a database — kill the orchestrator mid-saga and restart it: it must
+      resume from persisted state, not from memory. And compensation itself can fail; a nightly <b>reconciliation job</b>
+      compares cloud state against device truth and repairs drift. That job is one of the highest-value things to test.</p>
+    </div>
+  </details>
+
+  <details class="lesson">
+    <summary>The read path: how a million devices become one dashboard</summary>
+    <div class="body">
+      <p>Telemetry is a firehose, so the read side is a pipeline, not a query:</p>
+<div class="codeblock"><span class="c">devices → collectors → bus topics → stream processors → stores → APIs</span>
+
+topic: <span class="s">telemetry.optics</span>   <span class="c">// partitioned BY DEVICE ID — so each device’s</span>
+                            <span class="c">// events stay IN ORDER (a “clear” must never</span>
+                            <span class="c">// overtake the “raise” it clears)</span>
+{ <span class="k">"deviceId"</span>: <span class="s">"CXNK007A55F1"</span>, <span class="k">"rxPowerDbm"</span>: -26.8,
+  <span class="k">"ts"</span>: <span class="s">"2026-07-05T09:14:07Z"</span>, <span class="k">"tenantId"</span>: <span class="s">"csp-042"</span> }
+
+<span class="c">// stream processor: windowed aggregates ("avg rx over 15 min"),</span>
+<span class="c">// threshold checks ("below -27 for 3 windows → raise degraded-optics"),</span>
+<span class="c">// writes: time-series DB (graphs) + entity store (current state)</span></div>
+      <p>Dashboards never scan raw events — they read <b>pre-computed aggregates</b> and a <b>current-state store</b>
+      (“last known health per device”). That’s why a dashboard can answer “how many degraded ONTs?” in 50&nbsp;ms across
+      millions of devices. <b>Tester’s angle:</b> inject a known event stream and assert the aggregates, the current-state
+      row, <i>and the latency budget</i> — data that arrives correct but late still breaks the NOC.</p>
+    </div>
+  </details>
+
+  <details class="lesson">
+    <summary>Cross-cutting: the patterns that keep it alive at 3am</summary>
+    <div class="body">
+      <p><b>Multi-tenancy.</b> Hundreds of operators share the platform; every row, event, and query carries a
+      <code>tenantId</code>, enforced at the data layer — tenant isolation is the one bug class you can never ship.
+      <b>Backpressure.</b> When a region reconnects after an outage, a million devices backfill at once; consumers must
+      shed load gracefully (lag grows, nothing crashes) instead of falling over. <b>Dead-letter queues.</b> A malformed
+      “poison pill” event goes to a DLQ for humans instead of crash-looping the consumer forever. <b>Schema registry.</b>
+      Event formats evolve; old consumers must survive new fields (and testers pin exactly this). <b>Distributed tracing.</b>
+      One trace ID follows “add subscriber” across every service hop — the difference between a 5-minute and a 5-hour
+      postmortem.</p>
+      <p><b>Tester’s angle:</b> each of these is a test charter: cross-tenant query attempts, thundering-herd replays,
+      hand-crafted poison events, mixed-version consumers, and trace-completeness checks.</p>
+    </div>
+  </details>
 </section>
 
 <section id="flow" class="reveal">
@@ -1424,6 +1538,42 @@ document.getElementById('flowUpBtn').addEventListener('click',async e=>{
   archinfo.innerHTML=old;
   btn.disabled=false;
 });
+
+/* ---------- SAGA DEMO ---------- */
+const SAGA_STEPS=['VALIDATE','WRITE DB + OUTBOX','CALL EMS','AUTHORIZE ONT','PUSH WI-FI','CONFIRM VIA TELEMETRY','ACTIVE 🎉'];
+const sagaRow=document.getElementById('sagaRow'), sagaMsg=document.getElementById('sagaMsg'),
+      sagaHappy=document.getElementById('sagaHappy'), sagaFail=document.getElementById('sagaFail');
+SAGA_STEPS.forEach((t,i)=>{
+  const c=document.createElement('span'); c.className='sg'; c.textContent=t; sagaRow.appendChild(c);
+  if(i<SAGA_STEPS.length-1){const a=document.createElement('span'); a.className='sgarrow'; a.textContent='→'; sagaRow.appendChild(a);}
+});
+const sgs=[...sagaRow.querySelectorAll('.sg')];
+const wait=ms=>new Promise(r=>setTimeout(r,RM?60:ms));
+async function runSaga(failAt){
+  sagaHappy.disabled=sagaFail.disabled=true;
+  sgs.forEach(s=>s.className='sg'); sagaMsg.className='sagamsg'; sagaMsg.textContent='Saga started — state persisted at every step.';
+  for(let i=0;i<sgs.length;i++){
+    sgs[i].className='sg on'; await wait(650);
+    if(i===failAt){
+      for(let r=1;r<=2;r++){ sagaMsg.textContent=`Timeout. Retry ${r}/2 with exponential backoff (${r*2}s)…`;
+        sgs[i].className='sg retry'; await wait(750); sgs[i].className='sg on'; await wait(400); }
+      sgs[i].className='sg fail';
+      sagaMsg.textContent='Retries exhausted. Compensating — undoing completed steps in reverse…';
+      await wait(700);
+      for(let j=i-1;j>=1;j--){ sgs[j].className='sg comp'; await wait(550); }
+      sagaMsg.className='sagamsg badm';
+      sagaMsg.textContent='❌ Saga rolled back: subscriber marked ACTIVATION_FAILED with a reason — never left half-provisioned. The order can be safely retried later, and the reconciler double-checks no orphan config was left on the devices.';
+      sagaHappy.disabled=sagaFail.disabled=false; return;
+    }
+    sgs[i].className='sg ok';
+    sagaMsg.textContent=`✓ ${SAGA_STEPS[i]} — state saved (${i+1}/${sgs.length})`;
+  }
+  sagaMsg.className='sagamsg good';
+  sagaMsg.textContent='✅ Saga complete — every step confirmed, cloud state matches device truth. This exact sequence is the Add-Subscriber story below.';
+  sagaHappy.disabled=sagaFail.disabled=false;
+}
+sagaHappy.onclick=()=>runSaga(-1);
+sagaFail.onclick=()=>runSaga(2);
 
 /* ---------- add-subscriber stepper ---------- */
 const STEPS=[
